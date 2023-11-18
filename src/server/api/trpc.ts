@@ -6,12 +6,12 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
-import { type NextRequest } from "next/server";
-import superjson from "superjson";
-import { ZodError } from "zod";
+import {initTRPC} from '@trpc/server';
+import {type NextRequest} from 'next/server';
+import superjson from 'superjson';
+import {ZodError} from 'zod';
 
-import { db } from "@/server/db";
+import {db} from '@/server/db';
 
 /**
  * 1. CONTEXT
@@ -35,7 +35,7 @@ interface CreateContextOptions {
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-export const createInnerTRPCContext = (opts: CreateContextOptions) => {
+const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     headers: opts.headers,
     db,
@@ -48,7 +48,7 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = (opts: { req: NextRequest }) => {
+export const createTRPCContext = (opts: {req: NextRequest}) => {
   // Fetch stuff that depends on the request
 
   return createInnerTRPCContext({
@@ -66,7 +66,7 @@ export const createTRPCContext = (opts: { req: NextRequest }) => {
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
-  errorFormatter({ shape, error }) {
+  errorFormatter({shape, error}) {
     return {
       ...shape,
       data: {
