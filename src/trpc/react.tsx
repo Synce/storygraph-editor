@@ -11,13 +11,15 @@ import {getUrl, transformer} from './shared';
 
 export const api = createTRPCReact<AppRouter>();
 
-export const TRPCReactProvider = ({
-  children,
-  cookies,
-}: {
+type TRPCReactProviderProps = {
   children: React.ReactNode;
-  cookies: string;
-}) => {
+  headers: Headers;
+};
+
+export const TRPCReactProvider = ({
+  headers,
+  children,
+}: TRPCReactProviderProps) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -43,10 +45,9 @@ export const TRPCReactProvider = ({
         unstable_httpBatchStreamLink({
           url: getUrl(),
           headers() {
-            return {
-              cookie: cookies,
-              'x-trpc-source': 'react',
-            };
+            const heads = new Map(headers);
+            heads.set('x-trpc-source', 'react');
+            return Object.fromEntries(heads);
           },
         }),
       ],

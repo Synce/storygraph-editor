@@ -50,7 +50,7 @@ const config = {
       'warn',
       {
         unusedExports: true,
-        ignoreExports: ['**/layout.tsx', 'src/trpc/shared.ts', '**/page.tsx'],
+        ignoreExports: ['**/layout.tsx', 'src/trpc/*', '**/page.tsx'],
       },
     ],
     'no-use-before-define': 'off',
