@@ -5,17 +5,86 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+generator json {
+  provider = "prisma-json-types-generator"
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+datasource db {
+  provider = "postgresql"
+  // url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  // directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  url      = env("DATABASE_URL")
+}
 
-  @@index([name])
+model World {
+  Id           String     @id @unique @default(cuid())
+  Title        String
+  TitleGeneric String
+  Description  String
+  Override     Int
+  Locations    Location[]
+}
+
+model Location {
+  Id          String       @id @unique @default(cuid())
+  Name        String?
+  Comment     String?
+  IsObject    Boolean?
+  /// [Attributes]
+  Attributes  Json?
+  Characters  Character[]
+  Items       Item[]
+  Connections Connection[]
+  Narration   Narration[]
+  World       World?       @relation(fields: [worldId], references: [Id])
+  worldId     String?
+}
+
+model Narration {
+  Id          String     @id @unique @default(cuid())
+  Name        String?
+  /// [Attributes]
+  Attributes  Json?
+  Location    Location?  @relation(fields: [locationId], references: [Id])
+  locationId  String?
+  Item        Item?      @relation(fields: [itemId], references: [Id])
+  itemId      String?
+  Character   Character? @relation(fields: [characterId], references: [Id])
+  characterId String?
+}
+
+model Item {
+  Id          String      @id @unique @default(cuid())
+  Name        String?
+  /// [Attributes]
+  Attributes  Json?
+  Narration   Narration[]
+  SubItems    Item[]      @relation("ParentItem")
+  location    Location?   @relation(fields: [locationId], references: [Id])
+  locationId  String?
+  ParentItem  Item?       @relation("ParentItem", fields: [Id], references: [Id])
+  Character   Character?  @relation(fields: [characterId], references: [Id])
+  characterId String?
+}
+
+model Character {
+  Id         String      @id @unique @default(cuid())
+  Name       String?
+  Comment    String?
+  IsObject   Boolean?
+  Items      Item[]
+  Narration  Narration[]
+  /// [Attributes]
+  Attributes Json?
+  Location   Location?   @relation(fields: [locationId], references: [Id])
+  locationId String?
+}
+
+model Connection {
+  Id          String    @id @unique @default(cuid())
+  Destination String
+  /// [Attributes]
+  Attributes  Json?
+  Location    Location? @relation(fields: [locationId], references: [Id])
+  locationId  String?
 }

@@ -1,3 +1,17 @@
+// disable jsx-a11y in airbnb-config
+// https://github.com/airbnb/javascript/issues/2032
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, import/no-extraneous-dependencies, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+const a11yOff = Object.keys(require('eslint-plugin-jsx-a11y').rules).reduce(
+  (acc, rule) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    acc[`jsx-a11y/${rule}`] = 'off';
+    return acc;
+  },
+  {},
+);
+
 /** @type {import("eslint").Linter.Config} */
 const config = {
   parser: '@typescript-eslint/parser',
@@ -29,7 +43,20 @@ const config = {
     'plugin:import/typescript',
   ],
   rules: {
+    ...a11yOff,
+    '@typescript-eslint/ban-ts-comment': [
+      'error',
+      {'ts-expect-error': 'allow-with-description'},
+    ],
     'react/jsx-curly-brace-presence': ['warn', {children: 'always'}],
+    '@typescript-eslint/prefer-nullish-coalescing': [
+      'error',
+      {
+        ignoreConditionalTests: true,
+        ignoreTernaryTests: true,
+        ignoreMixedLogicalExpressions: true,
+      },
+    ],
     'no-plusplus': 'off',
     '@typescript-eslint/consistent-type-definitions': 'off',
     '@typescript-eslint/consistent-type-imports': [
@@ -50,7 +77,7 @@ const config = {
       'warn',
       {
         unusedExports: true,
-        ignoreExports: ['**/layout.tsx', 'src/trpc/*', '**/page.tsx'],
+        ignoreExports: ['**/layout.tsx', '**/page.tsx', 'tailwind.config.ts'],
       },
     ],
     'no-use-before-define': 'off',
@@ -76,9 +103,10 @@ const config = {
     'no-shadow': 'off',
     camelcase: 'off',
     'react/jsx-props-no-spreading': ['off'],
+    'react/require-default-props': ['off'],
     'import/no-extraneous-dependencies': [
       'error',
-      {devDependencies: ['**/*.test.js']},
+      {devDependencies: ['**/*.test.js', 'tailwind.config.ts']},
     ],
     '@typescript-eslint/no-shadow': ['off'],
     'no-underscore-dangle': 'off',
@@ -86,6 +114,7 @@ const config = {
       'error',
       {
         namedComponents: 'arrow-function',
+        unnamedComponents: 'arrow-function',
       },
     ],
     'no-param-reassign': ['warn', {props: false}],
