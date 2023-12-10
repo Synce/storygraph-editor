@@ -10,10 +10,10 @@ generator json {
 }
 
 datasource db {
-  provider = "postgresql"
-  // url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  // directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  // url      = env("DATABASE_URL")
 }
 
 model World {
@@ -54,17 +54,18 @@ model Narration {
 }
 
 model Item {
-  Id          String      @id @unique @default(cuid())
-  Name        String?
+  Id           String      @id @unique @default(cuid())
+  Name         String?
   /// [Attributes]
-  Attributes  Json?
-  Narration   Narration[]
-  SubItems    Item[]      @relation("ParentItem")
-  location    Location?   @relation(fields: [locationId], references: [Id])
-  locationId  String?
-  ParentItem  Item?       @relation("ParentItem", fields: [Id], references: [Id])
-  Character   Character?  @relation(fields: [characterId], references: [Id])
-  characterId String?
+  Attributes   Json?
+  Narration    Narration[]
+  SubItems     Item[]      @relation("ParentItem")
+  location     Location?   @relation(fields: [locationId], references: [Id])
+  locationId   String?
+  ParentItem   Item?       @relation("ParentItem", fields: [parentItemId], references: [Id])
+  parentItemId String?
+  Character    Character?  @relation(fields: [characterId], references: [Id])
+  characterId  String?
 }
 
 model Character {

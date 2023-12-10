@@ -11,6 +11,8 @@ import {type WorldSchema} from '@schemas/worldSchema';
 const CreateWorldForm = () => {
   const {toast} = useToast();
 
+  const [Id, setId] = useState<string>();
+
   const loadWorld = api.world.loadWorld.useMutation({
     onError: err => {
       toast({
@@ -18,7 +20,12 @@ const CreateWorldForm = () => {
         description: err.shape?.message,
       });
     },
+    onSuccess: world => {
+      setId(world.Id);
+    },
   });
+
+  const getWorld = api.world.getWorld.useQuery({Id: Id ?? ''}, {enabled: !!Id});
 
   const [file, setFile] = useState<File>();
 
@@ -47,6 +54,8 @@ const CreateWorldForm = () => {
       <Button loading={loadWorld.isPending} onClick={onSubmit}>
         {'Wyślij'}
       </Button>
+
+      <pre>{JSON.stringify(getWorld.data, null, 2)}</pre>
     </div>
   );
 };

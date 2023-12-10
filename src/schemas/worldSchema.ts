@@ -35,7 +35,7 @@ const characterSchema = z.object({
   Name: z.string().optional(),
   Id: z.string().optional(),
   Comment: z.string().optional(),
-  IsObject: z.string().optional(),
+  IsObject: z.boolean().optional(),
   Items: z.array(itemSchema).optional(),
   Narration: z.array(narrationSchema).optional(),
   Attributes: dictionarySchema.optional(),
@@ -73,6 +73,7 @@ export const worldSchema = z.object({
 });
 
 export type CharacterSchema = z.infer<typeof characterSchema>;
-export type ConnectionSchema = z.infer<typeof characterSchema>;
+export type ConnectionSchema = z.infer<typeof connectionSchema>;
+export type LocationSchema = z.infer<typeof locationSchema>;
 
 export type WorldSchema = z.infer<typeof worldSchema>;
