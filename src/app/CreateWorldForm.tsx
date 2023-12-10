@@ -8,6 +8,8 @@ import {Input} from '@components/ui/Input';
 import {useToast} from '@hooks/useToast';
 import {type WorldSchema} from '@schemas/worldSchema';
 
+import WorldMap from './_components/WorldMap';
+
 const CreateWorldForm = () => {
   const {toast} = useToast();
 
@@ -56,6 +58,7 @@ const CreateWorldForm = () => {
       </Button>
 
       <pre>{JSON.stringify(getWorld.data, null, 2)}</pre>
+      {!!Id && <WorldMap Id={Id} />}
     </div>
   );
 };

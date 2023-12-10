@@ -10,10 +10,10 @@ generator json {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
-  // url      = env("DATABASE_URL")
+  provider = "postgresql"
+  // url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  // directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  url      = env("DATABASE_URL")
 }
 
 model World {
@@ -27,6 +27,7 @@ model World {
 
 model Location {
   Id          String       @id @unique @default(cuid())
+  GivenId     String?
   Name        String?
   Comment     String?
   IsObject    Boolean?
@@ -42,6 +43,7 @@ model Location {
 
 model Narration {
   Id          String     @id @unique @default(cuid())
+  GivenId     String?
   Name        String?
   /// [Attributes]
   Attributes  Json?
@@ -55,6 +57,7 @@ model Narration {
 
 model Item {
   Id           String      @id @unique @default(cuid())
+  GivenId      String?
   Name         String?
   /// [Attributes]
   Attributes   Json?
@@ -70,6 +73,7 @@ model Item {
 
 model Character {
   Id         String      @id @unique @default(cuid())
+  GivenId    String?
   Name       String?
   Comment    String?
   IsObject   Boolean?

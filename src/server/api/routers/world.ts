@@ -21,7 +21,7 @@ export const worldRouter = createTRPCRouter({
 
         return {
           createMany: {
-            data: Narration,
+            data: Narration.map(({Id, ...rest}) => ({GivenId: Id, ...rest})),
           },
         };
       };
@@ -36,14 +36,13 @@ export const worldRouter = createTRPCRouter({
       };
 
       const createItems = async (items: ItemSchema[]) => {
-        // Funkcja pomocnicza do rekurencyjnego tworzenia obiektów Item
         const createItemRecursively = async (item: ItemSchema) => {
           const createdItem = await ctx.db.item.create({
             data: {
-              //  Id: item.Id,
+              GivenId: item.Id,
               Name: item.Name,
               Attributes: item.Attributes,
-              //   Narration: createNarration(item.Narration),
+              Narration: createNarration(item.Narration),
             },
           });
 
@@ -73,7 +72,7 @@ export const worldRouter = createTRPCRouter({
         ) => {
           const createdCharacter = await ctx.db.character.create({
             data: {
-              // Id: character.Id,
+              GivenId: character.Id,
               Name: character.Name,
               Comment: character.Comment,
               IsObject: character.IsObject,
@@ -107,7 +106,7 @@ export const worldRouter = createTRPCRouter({
         const createLocationRecursively = async (location: LocationSchema) => {
           const createdLocation = await ctx.db.location.create({
             data: {
-              //  Id: location.Id,
+              GivenId: location.Id,
               Name: location.Name,
               Comment: location.Comment,
               IsObject: location.IsObject,
@@ -169,16 +168,6 @@ export const worldRouter = createTRPCRouter({
       return createdWorld;
     }),
 
-  // create: publicProcedure
-  //   .input(z.object({name: z.string().min(1)}))
-  //   .mutation(async ({ctx, input}) => {
-  //     // simulate a slow db call
-  //     await new Promise(resolve => {
-  //       setTimeout(resolve, 1000);
-  //     });
-
-  //   }),
-
   getWorld: publicProcedure
     .input(z.object({Id: z.string()}))
     .query(({ctx, input}) => {
@@ -202,5 +191,50 @@ export const worldRouter = createTRPCRouter({
           },
         },
       });
+    }),
+
+  getWorldMap: publicProcedure
+    .input(z.object({Id: z.string()}))
+    .query(async ({ctx, input}) => {
+      const locations = await ctx.db.location.findMany({
+        where: {
+          worldId: input.Id,
+        },
+        include: {
+          Connections: true,
+        },
+      });
+      const nodes = locations.map((location, index) => ({
+        id: location.GivenId,
+        type: 'location',
+        data: {
+          label: location.Name,
+        },
+        position: {
+          x: index * 100,
+          y: index * 100,
+        },
+      }));
+      const edges = locations.reduce(
+        (acc, location) => {
+          if (location.Connections) {
+            const locationEdges = location.Connections.map(connection => ({
+              id: connection.Id,
+              source: location.GivenId,
+              target: connection.Destination,
+              animated: true,
+            }));
+            return [...acc, ...locationEdges];
+          }
+          return acc;
+        },
+        [] as {
+          id: string;
+          source: string;
+          target: string;
+          animated: boolean;
+        }[],
+      );
+      return {nodes, edges};
     }),
 });
