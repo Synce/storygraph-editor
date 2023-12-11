@@ -18,8 +18,8 @@ export const metadata = {
 
 const RootLayout = ({children}: {children: React.ReactNode}) => {
   return (
-    <html lang="en">
-      <body className={`font-sans ${inter.variable}`}>
+    <html lang="en" className="h-full w-full">
+      <body className={`font-sans ${inter.variable} h-full w-full text-white`}>
         <TRPCReactProvider headers={headers()}>{children}</TRPCReactProvider>
         <Toaster />
       </body>

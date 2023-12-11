@@ -1,5 +1,6 @@
 'use client';
 
+import {useRouter} from 'next/navigation';
 import {useState} from 'react';
 
 import {api} from '@/trpc/react';
@@ -8,12 +9,10 @@ import {Input} from '@components/ui/Input';
 import {useToast} from '@hooks/useToast';
 import {type WorldSchema} from '@schemas/worldSchema';
 
-import WorldMap from './_components/WorldMap';
-
 const CreateWorldForm = () => {
   const {toast} = useToast();
 
-  const [Id, setId] = useState<string>();
+  const router = useRouter();
 
   const loadWorld = api.world.loadWorld.useMutation({
     onError: err => {
@@ -23,11 +22,9 @@ const CreateWorldForm = () => {
       });
     },
     onSuccess: world => {
-      setId(world.Id);
+      router.push(`/world/${world.Id}/world-edit`);
     },
   });
-
-  const getWorld = api.world.getWorld.useQuery({Id: Id ?? ''}, {enabled: !!Id});
 
   const [file, setFile] = useState<File>();
 
@@ -47,18 +44,16 @@ const CreateWorldForm = () => {
   };
 
   return (
-    <div>
+    <div className="flex  flex-col gap-4  rounded-lg border border-slate-200 bg-slate-700 p-10">
+      <h1 className=" text-lg font-bold">{'Prześlij plik'}</h1>
       <Input
         type="file"
         onChange={e => setFile(e.target.files?.[0])}
         accept="application/JSON"
       />
-      <Button loading={loadWorld.isPending} onClick={onSubmit}>
+      <Button loading={loadWorld.isPending} className="" onClick={onSubmit}>
         {'Wyślij'}
       </Button>
-
-      <pre>{JSON.stringify(getWorld.data, null, 2)}</pre>
-      {!!Id && <WorldMap Id={Id} />}
     </div>
   );
 };

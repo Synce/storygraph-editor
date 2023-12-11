@@ -18,7 +18,7 @@ const WorldMap = ({Id}: WorldMapProps) => {
   const getWorldMap = api.world.getWorldMap.useQuery({Id});
 
   return (
-    <div className="h-[1000px] w-screen">
+    <div className="flex w-full grow">
       <ReactFlow
         nodeTypes={nodeTypes}
         nodes={getWorldMap.data?.nodes ?? []}
