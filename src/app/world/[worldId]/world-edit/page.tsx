@@ -1,18 +1,17 @@
-import WorldMap from '@/app/_components/WorldMap';
-
+import RootMap from './RootMap';
 import WorldJson from './WorldJson';
 
 type WorldEditPageProps = {
   params: {
-    Id: string;
+    worldId: string;
   };
 };
 
-const WorldEditPage = ({params: {Id}}: WorldEditPageProps) => {
+const WorldEditPage = ({params: {worldId}}: WorldEditPageProps) => {
   return (
     <div className="flex  h-full w-full flex-col bg-slate-800">
-      <WorldJson Id={Id} />
-      <WorldMap Id={Id} />
+      <WorldJson Id={worldId} />
+      <RootMap Id={worldId} />
     </div>
   );
 };

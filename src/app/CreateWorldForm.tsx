@@ -48,6 +48,7 @@ const CreateWorldForm = () => {
       <h1 className=" text-lg font-bold">{'Prześlij plik'}</h1>
       <Input
         type="file"
+        className="cursor-pointer text-black"
         onChange={e => setFile(e.target.files?.[0])}
         accept="application/JSON"
       />

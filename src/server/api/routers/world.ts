@@ -1,6 +1,7 @@
 import {z} from 'zod';
 
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
+import {editLocationSchema} from '@schemas/EditLocationSchema';
 import {
   type NarrationSchema,
   worldSchema,
@@ -204,15 +205,17 @@ export const worldRouter = createTRPCRouter({
           Connections: true,
         },
       });
-      const nodes = locations.map((location, index) => ({
-        id: location.GivenId,
+      const nodes = locations.map(({GivenId, Id, Name}) => ({
+        id: GivenId,
         type: 'location',
         data: {
-          label: location.Name,
+          Id,
+          GivenId,
+          Name,
         },
         position: {
-          x: index * 100,
-          y: index * 100,
+          x: Math.random() * 100,
+          y: Math.random() * 100,
         },
       }));
       const edges = locations.reduce(
@@ -222,7 +225,6 @@ export const worldRouter = createTRPCRouter({
               id: connection.Id,
               source: location.GivenId,
               target: connection.Destination,
-              animated: true,
             }));
             return [...acc, ...locationEdges];
           }
@@ -232,9 +234,125 @@ export const worldRouter = createTRPCRouter({
           id: string;
           source: string;
           target: string;
-          animated: boolean;
         }[],
       );
       return {nodes, edges};
+    }),
+
+  getLocation: publicProcedure
+    .input(z.object({Id: z.string()}))
+    .query(async ({ctx, input}) => {
+      return ctx.db.location.findFirst({
+        where: {
+          Id: input.Id,
+        },
+        include: {
+          Connections: true,
+          Items: true,
+          Narration: true,
+          Characters: true,
+        },
+      });
+    }),
+
+  addLocation: publicProcedure
+    .input(z.object({Id: z.string()}))
+    .mutation(async ({ctx, input}) => {
+      const location = await ctx.db.location.create({
+        data: {
+          worldId: input.Id,
+          Name: 'Brak nazwy',
+        },
+      });
+
+      return {
+        id: location.GivenId,
+        type: 'location',
+        data: {
+          Id: location.Id,
+          GivenId: location.GivenId,
+          Name: location.Name,
+        },
+        position: {
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+        },
+      };
+    }),
+
+  updateLocation: publicProcedure
+    .input(editLocationSchema)
+    .mutation(async ({ctx, input}) => {
+      const {Id, ...data} = input;
+      return ctx.db.location.update({
+        where: {
+          Id,
+        },
+        data,
+      });
+    }),
+
+  addConnection: publicProcedure
+    .input(
+      z.object({
+        sourceId: z.string(),
+        targetId: z.string(),
+        worldId: z.string(),
+      }),
+    )
+    .mutation(async ({ctx, input}) => {
+      const location = await ctx.db.location.findFirstOrThrow({
+        where: {worldId: input.worldId, GivenId: input.sourceId},
+      });
+      return ctx.db.location.update({
+        where: {
+          Id: location.Id,
+        },
+        data: {
+          Connections: {create: {Destination: input.targetId}},
+        },
+      });
+    }),
+
+  removeConnection: publicProcedure
+    .input(
+      z.object({
+        sourceId: z.string(),
+        targetId: z.string(),
+        worldId: z.string(),
+      }),
+    )
+    .mutation(async ({ctx, input}) => {
+      const location = await ctx.db.location.findFirstOrThrow({
+        where: {worldId: input.worldId, GivenId: input.sourceId},
+      });
+
+      return ctx.db.connection.deleteMany({
+        where: {
+          Destination: input.targetId,
+          locationId: location.Id,
+        },
+      });
+    }),
+
+  removeLocation: publicProcedure
+    .input(z.object({Id: z.string()}))
+    .mutation(async ({ctx, input}) => {
+      return ctx.db.location.delete({
+        where: {
+          Id: input.Id,
+        },
+        include: {
+          Characters: {
+            include: {
+              Items: {include: {SubItems: true}},
+              Narration: true,
+            },
+          },
+          Items: {include: {SubItems: true, Narration: true}},
+          Connections: true,
+          Narration: true,
+        },
+      });
     }),
 });
