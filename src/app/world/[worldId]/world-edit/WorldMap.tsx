@@ -154,6 +154,7 @@ const WorldMap = ({
         if (change.type === 'remove') {
           const node = nodes.find(edge => edge.id === change.id);
           if (!node) return;
+
           removeLocation.mutate({
             Id: node.data.Id,
           });

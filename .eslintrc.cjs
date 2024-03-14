@@ -80,6 +80,7 @@ const config = {
         ignoreExports: ['**/layout.tsx', '**/page.tsx', 'tailwind.config.ts'],
       },
     ],
+    'no-restricted-syntax': 0,
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': ['error'],
     '@typescript-eslint/no-misused-promises': [

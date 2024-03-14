@@ -255,6 +255,34 @@ export const worldRouter = createTRPCRouter({
       });
     }),
 
+  getCharacter: publicProcedure
+    .input(z.object({Id: z.string()}))
+    .query(async ({ctx, input}) => {
+      return ctx.db.character.findFirst({
+        where: {
+          Id: input.Id,
+        },
+        include: {
+          Items: true,
+          Narration: true,
+        },
+      });
+    }),
+
+  getItem: publicProcedure
+    .input(z.object({Id: z.string()}))
+    .query(async ({ctx, input}) => {
+      return ctx.db.item.findFirst({
+        where: {
+          Id: input.Id,
+        },
+        include: {
+          SubItems: true,
+          Narration: true,
+        },
+      });
+    }),
+
   addLocation: publicProcedure
     .input(z.object({Id: z.string()}))
     .mutation(async ({ctx, input}) => {
@@ -280,15 +308,46 @@ export const worldRouter = createTRPCRouter({
       };
     }),
 
-  updateLocation: publicProcedure
+  updateNode: publicProcedure
     .input(editLocationSchema)
     .mutation(async ({ctx, input}) => {
-      const {Id, ...data} = input;
+      const {Id, Attributes, Type, ...data} = input;
+
+      const parsedAttributes = Attributes?.reduce((acc, attribute) => {
+        acc[attribute.key] = attribute.value;
+        return acc;
+      }, {} as PrismaJson.Attributes);
+
+      if (Type === 'character')
+        return ctx.db.character.update({
+          where: {
+            Id,
+          },
+          data: {
+            ...data,
+            Attributes: parsedAttributes,
+          },
+        });
+
+      if (Type === 'item')
+        return ctx.db.item.update({
+          where: {
+            Id,
+          },
+          data: {
+            ...data,
+            Attributes: parsedAttributes,
+          },
+        });
+
       return ctx.db.location.update({
         where: {
           Id,
         },
-        data,
+        data: {
+          ...data,
+          Attributes: parsedAttributes,
+        },
       });
     }),
 
@@ -302,7 +361,10 @@ export const worldRouter = createTRPCRouter({
     )
     .mutation(async ({ctx, input}) => {
       const location = await ctx.db.location.findFirstOrThrow({
-        where: {worldId: input.worldId, GivenId: input.sourceId},
+        where: {
+          worldId: input.worldId,
+          OR: [{Id: input.sourceId}, {GivenId: input.sourceId}],
+        },
       });
       return ctx.db.location.update({
         where: {

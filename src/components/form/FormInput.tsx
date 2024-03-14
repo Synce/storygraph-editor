@@ -28,6 +28,16 @@ const FormInput = <T extends FieldValues>({
       {...input}
       value={input.value ?? ''}
       {...props}
+      onBlur={e => {
+        input.onBlur();
+        props?.onBlur?.(e);
+      }}
+      onChange={e => {
+        input.onChange(
+          props.type === 'number' ? e.target.valueAsNumber : e.target.value,
+        );
+        props?.onChange?.(e);
+      }}
     />
   );
 };

@@ -5,15 +5,15 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
+import FormField, {type FormFieldProps} from './FormField';
+
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './../ui/Select';
-
-import FormField, {type FormFieldProps} from './FormField';
+} from '../ui/Select';
 
 type FormSelectOption<T extends string> = {
   value: T;
@@ -37,12 +37,11 @@ const FormSelect = <T extends FieldValues, V extends string>({
     field: input,
     fieldState: {error},
   } = useController(props);
-
   return (
     <FormField {...field} error={error?.message}>
-      <Select onValueChange={input.onChange} defaultValue={input.value}>
+      <Select onValueChange={input.onChange} defaultValue={`${input.value}`}>
         <SelectTrigger className="text-body  box-border rounded-lg bg-white px-4 py-3">
-          <SelectValue placeholder={'Pusto'} />
+          <SelectValue placeholder="Pusto" />
         </SelectTrigger>
         <SelectContent>
           {options.map(({value, label}) => (
