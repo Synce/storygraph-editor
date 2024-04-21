@@ -8,39 +8,31 @@ import {api} from '@/trpc/react';
 import {type RouterOutputs} from '@/trpc/shared';
 import AttributesInput from '@components/form/AttributesInput';
 import FormInput from '@components/form/FormInput';
-import Label from '@components/form/Label';
 import {Button} from '@components/ui/Button';
 import {useToast} from '@hooks/useToast';
 import {
-  type EditLocationSchema,
-  editLocationSchema,
-  type EditAttributesSchema,
-} from '@schemas/EditLocationSchema';
+  type EditNodeSchema,
+  editNodeSchema,
+} from '@schemas/worldInputApiSchemas';
+import {parseAttributesSchema} from '@utils/misc';
 
-import SubContent from './SubContent';
+import SubContentList from './SubContentList';
 
 type EditItemFormProps = {
   item: NonNullable<RouterOutputs['world']['getItem']>;
 };
 const EditItemForm = ({item}: EditItemFormProps) => {
-  const methods = useForm<EditLocationSchema>({
+  const methods = useForm<EditNodeSchema>({
     mode: 'onChange',
-    resolver: zodResolver(editLocationSchema),
+    resolver: zodResolver(editNodeSchema),
 
     defaultValues: {
       Type: 'item',
       Name: item.Name,
-      //   Comment: item.Comment,
+      //  Comment: item.Comment,
       GivenId: item.GivenId,
       Id: item.Id,
-      Attributes: Object.entries(item.Attributes ?? {}).reduce<
-        EditAttributesSchema[]
-      >((acc, item) => {
-        const [key, value] = item;
-        const type = typeof value;
-        const attribute = {key, value, type} as EditAttributesSchema;
-        return [...acc, attribute];
-      }, [] as EditAttributesSchema[]),
+      Attributes: parseAttributesSchema(item.Attributes),
     },
   });
 
@@ -67,7 +59,7 @@ const EditItemForm = ({item}: EditItemFormProps) => {
       });
     },
   });
-  const onSubmit = (data: EditLocationSchema) => {
+  const onSubmit = (data: EditNodeSchema) => {
     updateCharacter.mutate(data);
   };
   return (
@@ -88,37 +80,12 @@ const EditItemForm = ({item}: EditItemFormProps) => {
           name="Comment"
         />
 
-        <div>
-          <Label>{'Items'}</Label>
-
-          <div className="flex flex-col gap-10">
-            {item.SubItems.map(item => (
-              <SubContent
-                Id={item.Id}
-                name={item?.Name}
-                GivenId={item.GivenId}
-                type="item"
-                key={item.Id}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <Label>{'Narrations'}</Label>
-
-          <div className="flex flex-col gap-10">
-            {item.Narration.map(narration => (
-              <SubContent
-                Id={narration.Id}
-                name={narration?.Name}
-                GivenId={narration.GivenId}
-                type="narration"
-                key={narration.Id}
-              />
-            ))}
-          </div>
-        </div>
+        <SubContentList Type="item" itemId={item.Id} content={item.SubItems} />
+        <SubContentList
+          Type="narration"
+          itemId={item.Id}
+          content={item.Narration}
+        />
 
         <FormProvider {...methods}>
           <AttributesInput control={control} />

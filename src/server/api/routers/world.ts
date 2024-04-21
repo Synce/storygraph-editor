@@ -1,7 +1,7 @@
 import {z} from 'zod';
 
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
-import {editLocationSchema} from '@schemas/EditLocationSchema';
+import {addNodeSchema, editNodeSchema} from '@schemas/worldInputApiSchemas';
 import {
   type NarrationSchema,
   worldSchema,
@@ -309,7 +309,7 @@ export const worldRouter = createTRPCRouter({
     }),
 
   updateNode: publicProcedure
-    .input(editLocationSchema)
+    .input(editNodeSchema)
     .mutation(async ({ctx, input}) => {
       const {Id, Attributes, Type, ...data} = input;
 
@@ -397,23 +397,107 @@ export const worldRouter = createTRPCRouter({
       });
     }),
 
-  removeLocation: publicProcedure
-    .input(z.object({Id: z.string()}))
+  removeNode: publicProcedure
+    .input(
+      z.object({
+        Id: z.string(),
+        Type: z.enum(['location', 'character', 'item', 'narration']),
+      }),
+    )
     .mutation(async ({ctx, input}) => {
-      return ctx.db.location.delete({
+      if (input.Type === 'location')
+        return ctx.db.location.delete({
+          where: {
+            Id: input.Id,
+          },
+          include: {
+            Characters: {
+              include: {
+                Items: {include: {SubItems: true, Narration: true}},
+                Narration: true,
+              },
+            },
+            Items: {include: {SubItems: true, Narration: true}},
+            Connections: true,
+            Narration: true,
+          },
+        });
+      if (input.Type === 'character')
+        return ctx.db.character.delete({
+          where: {
+            Id: input.Id,
+          },
+          include: {
+            Items: {include: {SubItems: true, Narration: true}},
+            Narration: true,
+          },
+        });
+      if (input.Type === 'narration')
+        return ctx.db.narration.delete({
+          where: {
+            Id: input.Id,
+          },
+        });
+
+      return ctx.db.item.delete({
         where: {
           Id: input.Id,
         },
         include: {
-          Characters: {
-            include: {
-              Items: {include: {SubItems: true}},
-              Narration: true,
-            },
-          },
-          Items: {include: {SubItems: true, Narration: true}},
-          Connections: true,
+          SubItems: true,
           Narration: true,
+        },
+      });
+    }),
+
+  addNode: publicProcedure
+    .input(addNodeSchema)
+    .mutation(async ({ctx, input}) => {
+      const {Type, ...rest} = input;
+
+      if (Type === 'location') {
+        const location = await ctx.db.location.create({
+          data: {
+            ...rest,
+            Name: 'Brak nazwy',
+          },
+        });
+
+        return {
+          id: location.GivenId,
+          type: 'location',
+          data: {
+            Id: location.Id,
+            GivenId: location.GivenId,
+            Name: location.Name,
+          },
+          position: {
+            x: Math.random() * 100,
+            y: Math.random() * 100,
+          },
+        };
+      }
+      if (input.Type === 'character') {
+        return ctx.db.character.create({
+          data: {
+            ...rest,
+            Name: 'Character',
+          },
+        });
+      }
+      if (input.Type === 'narration') {
+        return ctx.db.narration.create({
+          data: {
+            ...rest,
+            Name: 'Narration',
+          },
+        });
+      }
+
+      return ctx.db.item.create({
+        data: {
+          ...rest,
+          Name: 'Item',
         },
       });
     }),

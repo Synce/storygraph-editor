@@ -18,7 +18,7 @@ const WorldJson = async ({Id}: WorldJsonProps) => {
     <Accordion type="single" collapsible className="w-full">
       <AccordionItem value="item-1">
         <AccordionTrigger className="px-10">{'JSON'}</AccordionTrigger>
-        <AccordionContent className="absolute z-10 h-[80vh] w-full border border-slate-200 bg-slate-800">
+        <AccordionContent className="absolute z-10 h-[80vh] w-full border border-slate-200 bg-slate-700">
           <ScrollArea className="h-full">
             <pre>{JSON.stringify(world, null, 2)}</pre>
             <ScrollBar />

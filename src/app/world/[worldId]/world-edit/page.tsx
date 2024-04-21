@@ -9,7 +9,7 @@ type WorldEditPageProps = {
 
 const WorldEditPage = ({params: {worldId}}: WorldEditPageProps) => {
   return (
-    <div className="flex  h-full w-full flex-col bg-slate-800">
+    <div className="flex  h-full w-full flex-col bg-slate-700">
       <WorldJson Id={worldId} />
       <RootMap Id={worldId} />
     </div>

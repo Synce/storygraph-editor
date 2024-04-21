@@ -20,18 +20,25 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 
 import {api} from '@/trpc/react';
+import {type RouterOutputs} from '@/trpc/shared';
 import {Button} from '@components/ui/Button';
 import {useToast} from '@hooks/useToast';
-import {sleep} from '@utils/misc';
+import {cn} from '@utils/cn';
 
 import CustomConnectionLine from './CustomConnectionLine';
 import FloatingEdge from './FloatingEdge';
 import LocationNode from './LocationNode';
 import {MarkerDefinition} from './MarkerDefinition';
 
+type NodeData = NonNullable<
+  RouterOutputs['world']['getWorldMap']['nodes'][number]['data']
+>;
+
+type ExtendedNode = Node<NodeData>;
+
 type WorldMapProps = {
   edges: Edge[];
-  nodes: Node[];
+  nodes: ExtendedNode[];
   worldId: string;
 };
 
@@ -44,7 +51,7 @@ const elkOptions = {
   'elk.spacing.nodeNode': '80',
 };
 
-const getLayoutedElements = async (nodes: Node[], edges: Edge[]) => {
+const getLayoutedElements = async (nodes: ExtendedNode[], edges: Edge[]) => {
   const graph = {
     id: 'root',
     layoutOptions: elkOptions,
@@ -70,7 +77,7 @@ const getLayoutedElements = async (nodes: Node[], edges: Edge[]) => {
       // React Flow expects a position property on the node instead of `x`
       // and `y` fields.
       position: {x: node.x, y: node.y},
-    })) ?? []) as Node[],
+    })) ?? []) as ExtendedNode[],
 
     edges: (layoutedGraph.edges ?? []) as unknown as Edge[],
   };
@@ -99,10 +106,12 @@ const WorldMap = ({
   nodes: initialNodes,
   edges: initialEdges,
 }: WorldMapProps) => {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
+  const [nodes, setNodes] = useState<ExtendedNode[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const {fitView, setCenter} = useReactFlow();
   const {toast} = useToast();
+
+  const [loaded, setLoaded] = useState(false);
 
   const addConnection = api.world.addConnection.useMutation({
     onError: err => {
@@ -133,7 +142,7 @@ const WorldMap = ({
     },
   });
 
-  const removeLocation = api.world.removeLocation.useMutation({
+  const removeLocation = api.world.removeNode.useMutation({
     onError: err => {
       toast({
         title: 'Error',
@@ -157,6 +166,7 @@ const WorldMap = ({
 
           removeLocation.mutate({
             Id: node.data.Id,
+            Type: 'location',
           });
         }
       });
@@ -204,18 +214,18 @@ const WorldMap = ({
       ({nodes: layoutedNodes, edges: layoutedEdges}) => {
         setNodes(layoutedNodes);
         setEdges(layoutedEdges);
-        void sleep(3000).then(() => {
-          fitView({duration: 300});
-        });
+        setLoaded(true);
       },
     );
-  }, [nodes, edges, fitView]);
+  }, [nodes, edges]);
 
-  // Calculate the initial layout on mount.
   useEffect(() => {
     onLayout();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onLayout]);
+
+  useEffect(() => {
+    if (loaded) fitView({duration: 300});
+  }, [fitView, loaded]);
 
   const updateLocation = api.world.addLocation.useMutation({
     onError: err => {
@@ -240,7 +250,11 @@ const WorldMap = ({
   });
 
   return (
-    <div className="flex w-full grow">
+    <div
+      className={cn(
+        'flex w-full grow ',
+        !loaded && 'pointer-events-none opacity-0 ',
+      )}>
       <Button
         onClick={() => {
           updateLocation.mutate({Id: worldId});
@@ -260,8 +274,7 @@ const WorldMap = ({
         minZoom={0.00001}
         defaultEdgeOptions={defaultEdgeOptions}
         connectionLineComponent={CustomConnectionLine}
-        connectionLineStyle={connectionLineStyle}
-        fitView>
+        connectionLineStyle={connectionLineStyle}>
         <MarkerDefinition color="gray" id="edge-marker-gray" />
         <MarkerDefinition color="#ef4444" id="edge-marker-red" />
 

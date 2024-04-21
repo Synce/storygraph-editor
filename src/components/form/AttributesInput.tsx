@@ -5,13 +5,13 @@ import {
 } from 'react-hook-form';
 
 import {Button} from '@components/ui/Button';
-import {type EditLocationSchema} from '@schemas/EditLocationSchema';
+import {type EditNodeSchema} from '@schemas/worldInputApiSchemas';
 
 import AttributeInput from './AttributeInput';
 import FormField from './FormField';
 
 type AttributesInputProps = {
-  control: UseControllerProps<EditLocationSchema>['control'];
+  control: UseControllerProps<EditNodeSchema>['control'];
 };
 
 const AttributesInput = ({control}: AttributesInputProps) => {
@@ -25,6 +25,7 @@ const AttributesInput = ({control}: AttributesInputProps) => {
   return (
     <FormField label="Attributes" error={error}>
       <Button
+        className="mb-4"
         onClick={e => {
           e.preventDefault();
           append({type: 'string', key: 'Nowa wartość', value: ''}, {});

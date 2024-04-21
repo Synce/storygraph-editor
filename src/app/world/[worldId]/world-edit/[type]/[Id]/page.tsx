@@ -20,7 +20,7 @@ const WorldEditPage = async ({params: {Id, type}}: WorldEditPageProps) => {
     if (!location) notFound();
 
     return (
-      <div className="flex min-h-full w-full flex-col bg-slate-800">
+      <div className="flex min-h-full w-full flex-col bg-slate-700">
         <EditLocationForm location={location} />
       </div>
     );
@@ -31,7 +31,7 @@ const WorldEditPage = async ({params: {Id, type}}: WorldEditPageProps) => {
     if (!character) notFound();
 
     return (
-      <div className="flex min-h-full w-full flex-col bg-slate-800">
+      <div className="flex min-h-full w-full flex-col bg-slate-700">
         <EditCharacterForm character={character} />
       </div>
     );
@@ -42,7 +42,7 @@ const WorldEditPage = async ({params: {Id, type}}: WorldEditPageProps) => {
     if (!item) notFound();
 
     return (
-      <div className="flex min-h-full w-full flex-col bg-slate-800">
+      <div className="flex min-h-full w-full flex-col bg-slate-700">
         <EditItemForm item={item} />
       </div>
     );

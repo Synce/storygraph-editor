@@ -1,8 +1,9 @@
 import {type ReactNode} from 'react';
 
+import {cn} from '@utils/cn';
+
 import FormErrorMessage from './FormErrorMessage';
 import Label from './Label';
-import {cn} from '@utils/cn';
 
 export type FormFieldProps = {
   error?: string;

@@ -5,13 +5,13 @@ import {
 } from 'react-hook-form';
 
 import {Button} from '@components/ui/Button';
-import {type EditLocationSchema} from '@schemas/EditLocationSchema';
+import {type EditNodeSchema} from '@schemas/worldInputApiSchemas';
 
 import FormInput from './FormInput';
 import FormSelect from './FormSelect';
 
 type AttributeInputProps = {
-  control: UseControllerProps<EditLocationSchema>['control'];
+  control: UseControllerProps<EditNodeSchema>['control'];
   index: number;
   onRemove: (index: number) => void;
 };
@@ -19,7 +19,7 @@ type AttributeInputProps = {
 const AttributeInput = ({control, index, onRemove}: AttributeInputProps) => {
   const type = useWatch({control, name: `Attributes.${index}.type`});
 
-  const {trigger} = useFormContext<EditLocationSchema>();
+  const {trigger} = useFormContext<EditNodeSchema>();
 
   return (
     <div className="flex items-center gap-10 border-b border-t">
@@ -62,6 +62,7 @@ const AttributeInput = ({control, index, onRemove}: AttributeInputProps) => {
         />
       )}
       <Button
+        variant="destructive"
         onClick={e => {
           e.preventDefault();
           onRemove(index);
