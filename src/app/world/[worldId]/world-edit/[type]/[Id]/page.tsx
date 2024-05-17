@@ -1,6 +1,7 @@
 import {notFound} from 'next/navigation';
 
 import {api} from '@/trpc/server';
+import {convertToPlainObject} from '@utils/misc';
 
 import EditCharacterForm from './EditCharacterForm';
 import EditItemForm from './EditItemForm';
@@ -21,7 +22,7 @@ const WorldEditPage = async ({params: {Id, type}}: WorldEditPageProps) => {
 
     return (
       <div className="flex min-h-full w-full flex-col bg-slate-700">
-        <EditLocationForm location={location} />
+        <EditLocationForm location={convertToPlainObject(location)} />
       </div>
     );
   }
@@ -32,7 +33,7 @@ const WorldEditPage = async ({params: {Id, type}}: WorldEditPageProps) => {
 
     return (
       <div className="flex min-h-full w-full flex-col bg-slate-700">
-        <EditCharacterForm character={character} />
+        <EditCharacterForm character={convertToPlainObject(character)} />
       </div>
     );
   }
@@ -43,7 +44,7 @@ const WorldEditPage = async ({params: {Id, type}}: WorldEditPageProps) => {
 
     return (
       <div className="flex min-h-full w-full flex-col bg-slate-700">
-        <EditItemForm item={item} />
+        <EditItemForm item={convertToPlainObject(item)} />
       </div>
     );
   }

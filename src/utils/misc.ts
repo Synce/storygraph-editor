@@ -1,3 +1,5 @@
+import superjson from 'superjson';
+
 import {type EditAttributesSchema} from '@schemas/worldInputApiSchemas';
 
 export const sleep = (ms: number): Promise<void> => {
@@ -19,3 +21,7 @@ export const parseAttributesSchema = (
     [] as EditAttributesSchema[],
   );
 };
+
+export function convertToPlainObject<T>(value: T): T {
+  return superjson.parse(superjson.stringify(value));
+}
