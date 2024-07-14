@@ -21,16 +21,11 @@ const LocationNode = ({data, id}: NodeProps<{Name: string; Id: string}>) => {
   return (
     <div className="before:line-h-1 before:absolute before:-top-2 before:left-1/2 before:z-50 before:h-5 before:w-10 before:-translate-x-1/2 before:rounded-md before:border-2 before:border-solid before:border-gray-600 before:bg-gray-500 before:text-xs before:text-white">
       <div
-        className="border-3 relative flex h-20 w-32 flex-col items-center justify-center overflow-hidden rounded border-black text-[10px]"
+        className="border-3 relative flex h-[80px] w-[130px] flex-col items-center justify-center overflow-hidden rounded border-black text-[10px]"
         style={{
           borderStyle: isTarget ? 'dashed' : 'solid',
           backgroundColor: isTarget ? '#ffcce3' : '#ccd9f6',
         }}>
-        <Link
-          className="z-10 bg-red-500"
-          href={`${pathname}/location/${data.Id}`}>
-          {'EDYTUJ'}
-        </Link>
         {!isConnecting && (
           <Handle
             className="!absolute !left-0 !top-0 !h-full !w-full !translate-y-0 !rounded-none border-none opacity-0"
@@ -45,7 +40,14 @@ const LocationNode = ({data, id}: NodeProps<{Name: string; Id: string}>) => {
           type="target"
           isConnectableStart={false}
         />
-        <pre>{data.Name}</pre>
+        <p className=" text-wrap text-md w-full p-2	 text-center text-black">
+          {data.Name}
+        </p>
+        <Link
+          className="z-10 rounded-sm bg-slate-800 p-1"
+          href={`${pathname}/location/${data.Id}`}>
+          {'EDYTUJ'}
+        </Link>
       </div>
     </div>
   );

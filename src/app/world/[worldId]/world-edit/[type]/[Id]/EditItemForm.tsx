@@ -80,7 +80,11 @@ const EditItemForm = ({item}: EditItemFormProps) => {
           name="Comment"
         />
 
-        <SubContentList Type="item" itemId={item.Id} content={item.SubItems} />
+        <SubContentList
+          Type="item"
+          parentItemId={item.Id}
+          content={item.SubItems}
+        />
         <SubContentList
           Type="narration"
           itemId={item.Id}

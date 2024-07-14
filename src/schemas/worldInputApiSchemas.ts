@@ -65,7 +65,7 @@ const addItemSchema = z.intersection(
       locationId: z.string(),
     }),
     z.object({
-      itemId: z.string(),
+      parentItemId: z.string(),
     }),
     z.object({
       characterId: z.string(),

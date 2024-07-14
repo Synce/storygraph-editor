@@ -47,7 +47,7 @@ const elk = new ELK();
 // - https://www.eclipse.org/elk/reference/options.html
 const elkOptions = {
   'elk.algorithm': 'layered',
-  'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+  'elk.layered.spacing.nodeNodeBetweenLayers': '130',
   'elk.spacing.nodeNode': '80',
 };
 
@@ -221,7 +221,8 @@ const WorldMap = ({
 
   useEffect(() => {
     onLayout();
-  }, [onLayout]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (loaded) fitView({duration: 300});
