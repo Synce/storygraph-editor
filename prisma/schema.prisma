@@ -16,80 +16,86 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model World {
-  Id           String     @id @unique @default(cuid())
-  Title        String
-  TitleGeneric String
-  Description  String
-  Override     Int
-  Locations    Location[]
-}
-
 model Location {
-  Id          String       @id @unique @default(cuid())
-  GivenId     String?
+  Id          String       @id @unique @default(uuid())
   Name        String?
   Comment     String?
   IsObject    Boolean?
-  /// [Attributes]
   Attributes  Json?
-  Characters  Character[]
-  Items       Item[]
   Connections Connection[]
-  Narration   Narration[]
-  World       World?       @relation(fields: [worldId], references: [Id])
-  worldId     String?
+  WorldNode   WorldNode?
 }
 
 model Narration {
-  Id          String     @id @unique @default(cuid())
-  GivenId     String?
-  Name        String?
+  Id         String     @id @unique @default(cuid())
+  Name       String?
   /// [Attributes]
-  Attributes  Json?
-  Location    Location?  @relation(fields: [locationId], references: [Id])
-  locationId  String?
-  Item        Item?      @relation(fields: [itemId], references: [Id])
-  itemId      String?
-  Character   Character? @relation(fields: [characterId], references: [Id])
-  characterId String?
+  Attributes Json?
+  WorldNode  WorldNode?
 }
 
 model Item {
-  Id           String      @id @unique @default(cuid())
-  GivenId      String?
-  Name         String?
+  Id         String     @id @unique @default(uuid())
+  Name       String?
   /// [Attributes]
-  Attributes   Json?
-  Narration    Narration[]
-  SubItems     Item[]      @relation("ParentItem")
-  location     Location?   @relation(fields: [locationId], references: [Id])
-  locationId   String?
-  ParentItem   Item?       @relation("ParentItem", fields: [parentItemId], references: [Id])
-  parentItemId String?
-  Character    Character?  @relation(fields: [characterId], references: [Id])
-  characterId  String?
+  Attributes Json?
+  WorldNode  WorldNode?
 }
 
 model Character {
-  Id         String      @id @unique @default(cuid())
-  GivenId    String?
+  Id         String     @id @unique @default(uuid())
   Name       String?
   Comment    String?
   IsObject   Boolean?
-  Items      Item[]
-  Narration  Narration[]
   /// [Attributes]
   Attributes Json?
-  Location   Location?   @relation(fields: [locationId], references: [Id])
-  locationId String?
+  WorldNode  WorldNode?
 }
 
 model Connection {
-  Id          String    @id @unique @default(cuid())
+  Id          String    @id @unique @default(uuid())
   Destination String
   /// [Attributes]
   Attributes  Json?
   Location    Location? @relation(fields: [locationId], references: [Id])
   locationId  String?
+}
+
+model WorldNode {
+  //prisma-extension-bark internal
+  id       Int    @id @default(autoincrement())
+  path     String @unique
+  depth    Int
+  numchild Int    @default(0)
+  //
+
+  type        WorldNodeType
+  character   Character?    @relation(fields: [characterId], references: [Id])
+  item        Item?         @relation(fields: [itemId], references: [Id])
+  narration   Narration?    @relation(fields: [narrationId], references: [Id])
+  location    Location?     @relation(fields: [locationId], references: [Id])
+  characterId String?       @unique
+  itemId      String?       @unique
+  narrationId String?       @unique
+  locationId  String?       @unique
+
+  World World?
+}
+
+model World {
+  Id           String    @id @unique @default(uuid())
+  Title        String
+  TitleGeneric String
+  Description  String
+  Override     Int
+  RootNode     WorldNode @relation(fields: [RootNodeId], references: [id])
+  RootNodeId   Int       @unique
+}
+
+enum WorldNodeType {
+  Character
+  Location
+  Item
+  Narration
+  World
 }

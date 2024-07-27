@@ -3,6 +3,9 @@ import 'server-only'; // Make sure you can't import this on client
 import {worldRouter} from '@/server/api/routers/world';
 import {createTRPCRouter} from '@/server/api/trpc';
 
+import {worldLoaderRouter} from './routers/worldLoader';
+import {worldMapRouter} from './routers/worldMap';
+
 /**
  * This is the primary router for your server.
  *
@@ -10,6 +13,8 @@ import {createTRPCRouter} from '@/server/api/trpc';
  */
 export const appRouter = createTRPCRouter({
   world: worldRouter,
+  worldLoader: worldLoaderRouter,
+  worldMap: worldMapRouter,
 });
 
 // export type definition of API

@@ -1,4 +1,4 @@
-import {Position, type Node} from 'reactflow';
+import {type Node} from 'reactflow';
 
 // this helper function returns the intersection point
 // of the line between the center of the intersectionNode and the target node
@@ -30,47 +30,14 @@ const getNodeIntersection = (intersectionNode: Node, targetNode: Node) => {
   return {x, y};
 };
 
-// returns the position (top,right,bottom or right) passed node compared to the intersection point
-const getEdgePosition = (
-  node: Node,
-  intersectionPoint: {x: number; y: number},
-) => {
-  const n = {...node.positionAbsolute, ...node};
-  const nx = Math.round(n.x!);
-  const ny = Math.round(n.y!);
-  const px = Math.round(intersectionPoint.x);
-  const py = Math.round(intersectionPoint.y);
-
-  if (px <= nx + 1) {
-    return Position.Left;
-  }
-  if (px >= nx + n.width! - 1) {
-    return Position.Right;
-  }
-  if (py <= ny + 1) {
-    return Position.Top;
-  }
-  if (py >= n.y! + n.height! - 1) {
-    return Position.Bottom;
-  }
-
-  return Position.Top;
-};
-
-// returns the parameters (sx, sy, tx, ty, sourcePos, targetPos) you need to create an edge
 export const getEdgeParams = (source: Node, target: Node) => {
   const sourceIntersectionPoint = getNodeIntersection(source, target);
   const targetIntersectionPoint = getNodeIntersection(target, source);
-
-  const sourcePos = getEdgePosition(source, sourceIntersectionPoint);
-  const targetPos = getEdgePosition(target, targetIntersectionPoint);
 
   return {
     sx: sourceIntersectionPoint.x,
     sy: sourceIntersectionPoint.y,
     tx: targetIntersectionPoint.x,
     ty: targetIntersectionPoint.y,
-    sourcePos,
-    targetPos,
   };
 };

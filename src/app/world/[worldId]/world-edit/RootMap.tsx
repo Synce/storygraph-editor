@@ -11,7 +11,7 @@ type RootMapProps = {
 };
 
 const RootMap = ({Id}: RootMapProps) => {
-  const getWorldMap = api.world.getWorldMap.useQuery({Id});
+  const getWorldMap = api.worldMap.getWorldNodesMap.useQuery({Id});
 
   const {data} = getWorldMap;
 

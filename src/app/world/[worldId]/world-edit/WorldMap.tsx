@@ -31,7 +31,7 @@ import LocationNode from './LocationNode';
 import {MarkerDefinition} from './MarkerDefinition';
 
 type NodeData = NonNullable<
-  RouterOutputs['world']['getWorldMap']['nodes'][number]['data']
+  RouterOutputs['worldMap']['getWorldMap']['nodes'][number]['data']
 >;
 
 type ExtendedNode = Node<NodeData>;
@@ -83,7 +83,7 @@ const getLayoutedElements = async (nodes: ExtendedNode[], edges: Edge[]) => {
   };
 };
 
-const nodeTypes = {location: LocationNode};
+const nodeTypes = {worldNode: LocationNode};
 
 const edgeTypes = {
   floating: FloatingEdge,

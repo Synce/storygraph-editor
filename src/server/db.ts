@@ -1,4 +1,5 @@
 import {PrismaClient} from '@prisma/client';
+import {withBark} from 'prisma-extension-bark';
 
 import {env} from '@/env.mjs';
 
@@ -6,55 +7,7 @@ const prismaClientSingleton = () => {
   return new PrismaClient({
     log:
       env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  }).$extends({
-    name: 'change Id to GivenId',
-    result: {
-      character: {
-        GivenId: {
-          needs: {
-            GivenId: true,
-            Id: true,
-          },
-          compute(data) {
-            return data.GivenId ?? data.Id;
-          },
-        },
-      },
-      item: {
-        GivenId: {
-          needs: {
-            GivenId: true,
-            Id: true,
-          },
-          compute(data) {
-            return data.GivenId ?? data.Id;
-          },
-        },
-      },
-      location: {
-        GivenId: {
-          needs: {
-            GivenId: true,
-            Id: true,
-          },
-          compute(data) {
-            return data.GivenId ?? data.Id;
-          },
-        },
-      },
-      narration: {
-        GivenId: {
-          needs: {
-            GivenId: true,
-            Id: true,
-          },
-          compute(data) {
-            return data.GivenId ?? data.Id;
-          },
-        },
-      },
-    },
-  });
+  }).$extends(withBark({modelNames: ['worldNode']}));
 };
 
 const globalForPrisma = globalThis as unknown as {

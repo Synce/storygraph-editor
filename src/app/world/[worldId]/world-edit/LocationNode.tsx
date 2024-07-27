@@ -1,3 +1,4 @@
+import {type WorldNodeType} from '@prisma/client';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {
@@ -8,10 +9,21 @@ import {
   type ReactFlowState,
 } from 'reactflow';
 
+const COLORS: Record<WorldNodeType, string> = {
+  Character: '#06d6a0',
+  Location: '#073b4c',
+  Item: '#ffd166',
+  Narration: '#118ab2',
+  World: '#ef476f',
+};
+
 const connectionNodeIdSelector = (state: ReactFlowState) =>
   state.connectionNodeId;
 
-const LocationNode = ({data, id}: NodeProps<{Name: string; Id: string}>) => {
+const LocationNode = ({
+  data,
+  id,
+}: NodeProps<{Name: string; Id: string; Type: WorldNodeType}>) => {
   const connectionNodeId = useStore(connectionNodeIdSelector);
 
   const isConnecting = !!connectionNodeId;
@@ -24,7 +36,7 @@ const LocationNode = ({data, id}: NodeProps<{Name: string; Id: string}>) => {
         className="border-3 relative flex h-[80px] w-[130px] flex-col items-center justify-center overflow-hidden rounded border-black text-[10px]"
         style={{
           borderStyle: isTarget ? 'dashed' : 'solid',
-          backgroundColor: isTarget ? '#ffcce3' : '#ccd9f6',
+          backgroundColor: isTarget ? '#ffcce3' : COLORS[data.Type],
         }}>
         {!isConnecting && (
           <Handle

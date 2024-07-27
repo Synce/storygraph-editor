@@ -18,7 +18,7 @@ const editAttributesSchema = z.discriminatedUnion('type', [
   }),
 ]);
 
-const nodeType = z.enum(['character', 'location', 'item', 'narration']);
+export const nodeType = z.enum(['Character', 'Location', 'Item', 'Narration']);
 
 export type NodeType = z.infer<typeof nodeType>;
 
@@ -27,7 +27,6 @@ export const editNodeSchema = z.object({
   Type: nodeType,
   Name: z.string().optional().nullable(),
   Comment: z.string().optional().nullable(),
-  GivenId: z.string().optional().nullable(),
   Attributes: z
     .array(editAttributesSchema)
     .refine(
@@ -51,58 +50,9 @@ export const editNodeSchema = z.object({
 export type EditNodeSchema = z.infer<typeof editNodeSchema>;
 export type EditAttributesSchema = z.infer<typeof editAttributesSchema>;
 
-const addLocationSchema = z.object({
-  Type: z.literal(nodeType.enum.location),
-  worldId: z.string(),
+export const addNodeSchema = z.object({
+  Type: nodeType,
+  parentWorldNodeId: z.number(),
 });
-
-const addItemSchema = z.intersection(
-  z.object({
-    Type: z.literal(nodeType.enum.item),
-  }),
-  z.union([
-    z.object({
-      locationId: z.string(),
-    }),
-    z.object({
-      parentItemId: z.string(),
-    }),
-    z.object({
-      characterId: z.string(),
-    }),
-  ]),
-);
-
-const addNarrationSchema = z.intersection(
-  z.object({
-    Type: z.literal(nodeType.enum.narration),
-  }),
-  z.union([
-    z.object({
-      locationId: z.string(),
-    }),
-    z.object({
-      itemId: z.string(),
-    }),
-    z.object({
-      characterId: z.string(),
-    }),
-    z.object({
-      ItemId: z.string(),
-    }),
-  ]),
-);
-
-const addCharacterSchema = z.object({
-  Type: z.literal(nodeType.enum.character),
-  locationId: z.string(),
-});
-
-export const addNodeSchema = z.union([
-  addLocationSchema,
-  addItemSchema,
-  addCharacterSchema,
-  addNarrationSchema,
-]);
 
 export type AddNodeSchema = z.infer<typeof addNodeSchema>;

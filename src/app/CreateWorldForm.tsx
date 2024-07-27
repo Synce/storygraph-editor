@@ -14,7 +14,7 @@ const CreateWorldForm = () => {
 
   const router = useRouter();
 
-  const loadWorld = api.world.loadWorld.useMutation({
+  const loadWorld = api.worldLoader.loadWorld.useMutation({
     onError: err => {
       toast({
         title: 'Error',
