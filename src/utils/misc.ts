@@ -1,15 +1,9 @@
-import {type Prisma} from '@prisma/client';
 import seedrandom from 'seedrandom';
 import superjson from 'superjson';
 import {v4 as uuidv4, type V4Options} from 'uuid';
 
+import {type WorldNodeWithOptionalPayload} from '@/server/api/interfaces/IWorldApi';
 import {type EditAttributesSchema} from '@schemas/worldInputApiSchemas';
-
-export const sleep = (ms: number): Promise<void> => {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms);
-  });
-};
 
 export const parseAttributesSchema = (
   attributes: PrismaJson.Attributes | null,
@@ -46,12 +40,8 @@ export function seededUUID(seed: string): string {
   return uuidv4(options);
 }
 
-type WorldNodeWithPayload = Prisma.WorldNodeGetPayload<{
-  include: {location: true; character: true; narration: true; item: true};
-}>;
-export const getWorldNodePayload = (node: WorldNodeWithPayload) => {
-  const payload =
-    node.character ?? node.item ?? node.narration ?? node.location;
+export const getWorldNodePayload = (node: WorldNodeWithOptionalPayload) => {
+  const payload = node.WorldContent;
   if (!payload) throw new Error(`No payload ${node.id}`);
   return payload;
 };

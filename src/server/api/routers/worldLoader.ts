@@ -2,16 +2,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable import/no-unused-modules */
 
-import {type WorldNode, type Prisma} from '@prisma/client';
+import {type WorldNode, type Prisma, type WorldNodeType} from '@prisma/client';
 
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
 import {
-  type NarrationSchema,
   worldSchema,
-  type ItemSchema,
-  type CharacterSchema,
   type ConnectionSchema,
-  type LocationSchema,
+  type NodeSchema,
 } from '@schemas/worldSchema';
 import {seededUUID} from '@utils/misc';
 
@@ -30,30 +27,6 @@ export const worldLoaderRouter = createTRPCRouter({
     .mutation(async ({ctx, input}) => {
       const {LSide, RSide, Instructions, Preconditions, ...world} = input;
 
-      const createNarration = async (
-        narration: NarrationSchema[] | undefined,
-        worldId: string,
-        parentId: number,
-      ) => {
-        if (!narration) return;
-
-        for (const narr of narration) {
-          await ctx.db.worldNode.createChild({
-            where: {id: parentId},
-            data: {
-              type: 'Narration',
-              narration: {
-                create: {
-                  Id: createUUID(narr.Id, worldId),
-                  Name: narr.Name,
-                  Attributes: narr.Attributes,
-                },
-              },
-            },
-          });
-        }
-      };
-
       const createConnections = (
         Connections: ConnectionSchema[] | undefined,
         worldId: string,
@@ -70,90 +43,49 @@ export const worldLoaderRouter = createTRPCRouter({
         };
       };
 
-      const createItems = async (
-        items: ItemSchema[] | undefined,
+      const createNodes = async (
+        nodes: NodeSchema[] | undefined,
+        type: WorldNodeType,
         worldId: string,
         parentId: number,
+        withConnections?: boolean,
       ) => {
-        if (!items) return;
+        if (!nodes) return;
 
-        for (const item of items) {
-          const node: WorldNode = await ctx.db.worldNode.createChild({
+        for (const node of nodes) {
+          const createdNode: WorldNode = await ctx.db.worldNode.createChild({
             where: {id: parentId},
             data: {
-              type: 'Item',
-              item: {
+              type,
+              WorldContent: {
                 create: {
-                  Id: createUUID(item.Id, worldId),
-                  Name: item.Name,
-                  Attributes: item.Attributes,
+                  Id: createUUID(node.Id, worldId),
+                  Name: node.Name,
+                  Attributes: node.Attributes,
+                  Comment: node.Comment,
+                  IsObject: node.IsObject,
+                  Connections:
+                    type === 'Location' && withConnections
+                      ? createConnections(node.Connections, worldId)
+                      : undefined,
                 },
               },
             },
           });
 
-          await createItems(item.Items, worldId, node.id);
-          await createNarration(item.Narration, worldId, node.id);
-        }
-      };
-
-      const createCharacters = async (
-        characters: CharacterSchema[] | undefined,
-        worldId: string,
-        parentId: number,
-      ) => {
-        if (!characters) return;
-
-        for (const character of characters) {
-          const node: WorldNode = await ctx.db.worldNode.createChild({
-            where: {id: parentId},
-            data: {
-              type: 'Character',
-              character: {
-                create: {
-                  Id: createUUID(character.Id, worldId),
-                  Name: character.Name,
-                  Comment: character.Comment,
-                  IsObject: character.IsObject,
-                  Attributes: character.Attributes,
-                },
-              },
-            },
-          });
-
-          await createItems(character.Items, worldId, node.id);
-          await createNarration(character.Narration, worldId, node.id);
-        }
-      };
-
-      const createLocations = async (
-        locations: LocationSchema[],
-        worldId: string,
-        parentId: number,
-      ) => {
-        if (!locations) return;
-
-        for (const location of locations) {
-          const node: WorldNode = await ctx.db.worldNode.createChild({
-            where: {id: parentId},
-            data: {
-              type: 'Location',
-              location: {
-                create: {
-                  Id: createUUID(location.Id, worldId),
-                  Name: location.Name,
-                  Comment: location.Comment,
-                  IsObject: location.IsObject,
-                  Attributes: location.Attributes,
-                  Connections: createConnections(location.Connections, worldId),
-                },
-              },
-            },
-          });
-
-          await createCharacters(location.Characters, worldId, node.id);
-          await createItems(location.Items, worldId, node.id);
-          await createNarration(location.Narration, worldId, node.id);
+          await createNodes(node.Items, 'Item', worldId, createdNode.id);
+          await createNodes(
+            node.Characters,
+            'Character',
+            worldId,
+            createdNode.id,
+          );
+          await createNodes(
+            node.Narration,
+            'Narration',
+            worldId,
+            createdNode.id,
+          );
         }
       };
 
@@ -174,10 +106,12 @@ export const worldLoaderRouter = createTRPCRouter({
 
       const createdWorld = createdWorldRoot.World!;
 
-      await createLocations(
+      await createNodes(
         LSide.Locations,
+        'Location',
         createdWorld.Id,
         createdWorldRoot.id,
+        true,
       );
 
       return createdWorld;

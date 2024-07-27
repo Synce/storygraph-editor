@@ -1,4 +1,3 @@
-import {type WorldNodeType} from '@prisma/client';
 import {z} from 'zod';
 
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
@@ -6,8 +5,9 @@ import {addNodeSchema, editNodeSchema} from '@schemas/worldInputApiSchemas';
 import {getWorldNodePayload} from '@utils/misc';
 
 import {
-  type WorldNodeChildren,
   type WorldNodeWithPayload,
+  type WorldNodeChildren,
+  type WorldNodeWithOptionalPayload,
 } from '../interfaces/IWorldApi';
 
 export const worldRouter = createTRPCRouter({
@@ -21,47 +21,42 @@ export const worldRouter = createTRPCRouter({
       });
     }),
   getNode: publicProcedure
-    .input(z.object({worldNodeId: z.number()}))
+    .input(z.object({Id: z.string()}))
     .query(async ({ctx, input}) => {
-      // @ts-expect-error package has bad typing
-      const worldNode: WorldNodeWithPayload = ctx.db.worldNode.findFirstOrThrow(
-        {
-          where: {id: input.worldNodeId},
-          include: {
-            location: true,
-            character: true,
-            item: true,
-            narration: true,
-          },
-        },
-      );
+      const contentNode = await ctx.db.worldContent.findFirstOrThrow({
+        where: {Id: input.Id},
+      });
 
       const childrenNodes = await ctx.db.worldNode.findChildren({
-        where: {id: input.worldNodeId},
+        where: {id: contentNode.worldNodeId},
         include: {
-          location: true,
-          character: true,
-          item: true,
-          narration: true,
+          WorldContent: true,
         },
       });
 
-      if (!childrenNodes) throw new Error(`Not found`);
-      const typedChildrenNodes = childrenNodes as WorldNodeWithPayload[];
+      const typedChildrenNodes = (childrenNodes ??
+        []) as WorldNodeWithOptionalPayload[];
 
-      const children = typedChildrenNodes.reduce((acc, node) => {
-        const payload = {...getWorldNodePayload(node), worldNodeId: node.id};
-        if (node.type === 'World') return acc;
-        const arr = acc[node.type] ?? [];
+      const children = typedChildrenNodes.reduce(
+        (acc, node) => {
+          const payload = getWorldNodePayload(node);
+          if (node.type === 'World') return acc;
+          const arr = acc[node.type] ?? [];
 
-        // @ts-expect-error type guard by node.type
-        acc[node.type] = arr.push(payload);
-        return acc;
-      }, {} as WorldNodeChildren);
+          acc[node.type] = [...arr, payload];
+          return acc;
+        },
+        {
+          Character: [],
+          Item: [],
+          Narration: [],
+          Location: [],
+          World: [],
+        } as WorldNodeChildren,
+      );
 
       return {
-        worldNodeId: worldNode.id,
-        ...getWorldNodePayload(worldNode),
+        ...contentNode,
         ...children,
       };
     }),
@@ -76,40 +71,7 @@ export const worldRouter = createTRPCRouter({
         return acc;
       }, {} as PrismaJson.Attributes);
 
-      if (Type === 'Character')
-        return ctx.db.character.update({
-          where: {
-            Id,
-          },
-          data: {
-            ...data,
-            Attributes: parsedAttributes,
-          },
-        });
-
-      if (Type === 'Item')
-        return ctx.db.item.update({
-          where: {
-            Id,
-          },
-          data: {
-            ...data,
-            Attributes: parsedAttributes,
-          },
-        });
-
-      if (Type === 'Narration')
-        return ctx.db.narration.update({
-          where: {
-            Id,
-          },
-          data: {
-            ...data,
-            Attributes: parsedAttributes,
-          },
-        });
-
-      return ctx.db.location.update({
+      return ctx.db.worldContent.update({
         where: {
           Id,
         },
@@ -128,21 +90,32 @@ export const worldRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ctx, input}) => {
-      const sourceLocation = await ctx.db.location.findFirstOrThrow({
+      const source = await ctx.db.worldContent.findFirstOrThrow({
         where: {
           Id: input.sourceId,
         },
-      });
-
-      await ctx.db.location.findFirstOrThrow({
-        where: {
-          Id: input.targetId,
+        include: {
+          WorldNode: true,
         },
       });
 
+      const target = await ctx.db.worldContent.findFirstOrThrow({
+        where: {
+          Id: input.targetId,
+        },
+        include: {
+          WorldNode: true,
+        },
+      });
+      if (
+        source.WorldNode.type !== 'Location' ||
+        target.WorldNode.type !== 'Location'
+      )
+        throw new Error('Można łączyć tylko dwie lokacje');
+
       const existingConnection = await ctx.db.connection.findFirst({
         where: {
-          locationId: input.sourceId,
+          worldContentId: input.sourceId,
           Destination: input.targetId,
         },
       });
@@ -151,9 +124,9 @@ export const worldRouter = createTRPCRouter({
         throw new Error('Już istnieje takie połączenie');
       }
 
-      return ctx.db.location.update({
+      return ctx.db.worldContent.update({
         where: {
-          Id: sourceLocation.Id,
+          Id: source.Id,
         },
         data: {
           Connections: {create: {Destination: input.targetId}},
@@ -172,7 +145,7 @@ export const worldRouter = createTRPCRouter({
       return ctx.db.connection.deleteMany({
         where: {
           Destination: input.targetId,
-          locationId: input.sourceId,
+          worldContentId: input.sourceId,
         },
       });
     }),
@@ -180,38 +153,37 @@ export const worldRouter = createTRPCRouter({
   removeNode: publicProcedure
     .input(
       z.object({
-        worldNodeId: z.number(),
+        Id: z.string(),
       }),
     )
     .mutation(async ({ctx, input}) => {
+      const content = ctx.db.worldContent.findFirstOrThrow({
+        where: {
+          Id: input.Id,
+        },
+      });
+
       return ctx.db.worldNode.deleteNode({
         where: {
-          id: input.worldNodeId,
+          id: (await content).worldNodeId,
         },
       });
     }),
 
-  addNode: publicProcedure
-    .input(addNodeSchema)
-    .mutation(async ({ctx, input}) => {
-      const type = input.Type.toLowerCase() as Uncapitalize<WorldNodeType>;
-
-      return ctx.db.worldNode.createChild({
-        where: {id: input.parentWorldNodeId},
-        data: {
-          type: input.Type,
-          [type]: {
-            create: {
-              Name: 'Brak nazwy',
-            },
+  addNode: publicProcedure.input(addNodeSchema).mutation(({ctx, input}) => {
+    return ctx.db.worldNode.createChild({
+      where: {id: input.parentWorldNodeId},
+      data: {
+        type: input.Type,
+        WorldContent: {
+          create: {
+            Name: 'Brak nazwy',
           },
         },
-        include: {
-          location: true,
-          character: true,
-          item: true,
-          narration: true,
-        },
-      });
-    }),
+      },
+      include: {
+        WorldContent: true,
+      },
+    }) as unknown as WorldNodeWithPayload;
+  }),
 });

@@ -29,7 +29,12 @@
                       "Attributes": {
                         "HP": 100,
                         "Money": 10
-                      }
+                      },
+                      "Connections": [
+                        {
+                          "Destination": "140328926971328"
+                        }
+                      ]
                     }
                   ]
                 }

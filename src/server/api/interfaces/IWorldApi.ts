@@ -1,20 +1,14 @@
 import {
-  type Character,
-  type Item,
-  type Narration,
+  type WorldContent,
   type Prisma,
+  type WorldNodeType,
+  type WorldNode,
 } from '@prisma/client';
 
-export type WorldNodeWithPayload = Prisma.WorldNodeGetPayload<{
-  include: {location: true; character: true; narration: true; item: true};
+export type WorldNodeWithOptionalPayload = Prisma.WorldNodeGetPayload<{
+  include: {WorldContent: true};
 }>;
-type WithWorldNodeId<T> = T & {
-  worldNodeId: number;
-};
 
-export type WorldNodeChildren = {
-  Character: WithWorldNodeId<Character>[];
-  Item: WithWorldNodeId<Item>[];
-  Narration: WithWorldNodeId<Narration>[];
-  Location: WithWorldNodeId<Location>[];
-};
+export type WorldNodeWithPayload = WorldNode & {WorldContent: WorldContent};
+
+export type WorldNodeChildren = Record<WorldNodeType, WorldContent[]>;

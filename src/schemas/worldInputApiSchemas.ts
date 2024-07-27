@@ -18,7 +18,7 @@ const editAttributesSchema = z.discriminatedUnion('type', [
   }),
 ]);
 
-export const nodeType = z.enum(['Character', 'Location', 'Item', 'Narration']);
+const nodeType = z.enum(['Character', 'Location', 'Item', 'Narration']);
 
 export type NodeType = z.infer<typeof nodeType>;
 

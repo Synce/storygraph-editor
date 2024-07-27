@@ -110,6 +110,7 @@ const WorldMap = ({
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
   const {fitView, setCenter} = useReactFlow();
   const {toast} = useToast();
+  const world = api.world.getWorld.useQuery({Id: worldId});
 
   const [loaded, setLoaded] = useState(false);
 
@@ -142,7 +143,7 @@ const WorldMap = ({
     },
   });
 
-  const removeLocation = api.world.removeNode.useMutation({
+  const removeNode = api.world.removeNode.useMutation({
     onError: err => {
       toast({
         title: 'Error',
@@ -164,15 +165,19 @@ const WorldMap = ({
           const node = nodes.find(edge => edge.id === change.id);
           if (!node) return;
 
-          removeLocation.mutate({
-            Id: node.data.Id,
-            Type: 'location',
-          });
+          void removeNode
+            .mutateAsync({
+              Id: node.data.Id,
+            })
+            .then(() => {
+              setNodes(nds => applyNodeChanges(changes, nds));
+            });
+        } else {
+          setNodes(nds => applyNodeChanges(changes, nds));
         }
       });
-      setNodes(nds => applyNodeChanges(changes, nds));
     },
-    [nodes, removeLocation],
+    [nodes, removeNode],
   );
   const onEdgesChange: OnEdgesChange = useCallback(
     changes => {
@@ -183,27 +188,28 @@ const WorldMap = ({
           removeConnection.mutate({
             sourceId: edge.source,
             targetId: edge.target,
-            worldId,
           });
         }
       });
 
       setEdges(eds => applyEdgeChanges(changes, eds));
     },
-    [edges, removeConnection, worldId],
+    [edges, removeConnection],
   );
   const onConnect: OnConnect = useCallback(
     connection => {
       if (connection.source === connection.target) return;
       if (!connection.source || !connection.target) return;
-      addConnection.mutate({
-        sourceId: connection.source,
-        targetId: connection.target,
-        worldId,
-      });
-      setEdges(eds => addEdge(connection, eds));
+      void addConnection
+        .mutateAsync({
+          sourceId: connection.source,
+          targetId: connection.target,
+        })
+        .then(() => {
+          setEdges(eds => addEdge(connection, eds));
+        });
     },
-    [addConnection, worldId],
+    [addConnection],
   );
 
   const onLayout = useCallback(() => {
@@ -228,7 +234,7 @@ const WorldMap = ({
     if (loaded) fitView({duration: 300});
   }, [fitView, loaded]);
 
-  const updateLocation = api.world.addLocation.useMutation({
+  const addNode = api.world.addNode.useMutation({
     onError: err => {
       toast({
         title: 'Error',
@@ -236,9 +242,23 @@ const WorldMap = ({
       });
     },
     onSuccess: node => {
-      setNodes(state => [...state, node]);
+      const mapNode = {
+        id: node.WorldContent.Id,
+        type: 'worldNode',
+        data: {
+          Id: node.WorldContent.Id,
+          Name: node.WorldContent.Name,
+          Type: node.type,
+        },
+        position: {
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+        },
+      };
+
+      setNodes(state => [...state, mapNode]);
       setTimeout(() => {
-        setCenter(node.position.x, node.position.y, {
+        setCenter(mapNode.position.x, mapNode.position.y, {
           duration: 500,
           zoom: 1,
         });
@@ -258,7 +278,11 @@ const WorldMap = ({
       )}>
       <Button
         onClick={() => {
-          updateLocation.mutate({Id: worldId});
+          if (world.data)
+            addNode.mutate({
+              parentWorldNodeId: world.data.RootNodeId,
+              Type: 'Location',
+            });
         }}
         className="absolute z-10">
         {'Dodaj lokacje'}

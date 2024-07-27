@@ -4,7 +4,7 @@ import {z} from 'zod';
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
 import {getWorldNodePayload} from '@utils/misc';
 
-import {type WorldNodeWithPayload} from '../interfaces/IWorldApi';
+import {type WorldNodeWithOptionalPayload} from '../interfaces/IWorldApi';
 
 export const worldMapRouter = createTRPCRouter({
   getWorldMap: publicProcedure
@@ -22,15 +22,19 @@ export const worldMapRouter = createTRPCRouter({
         where: {
           id: world.RootNodeId,
         },
+        include: {
+          WorldContent: true,
+        },
       });
 
       if (!worldNodes) throw new Error(`Not found`);
+      const typedWorldNodes = worldNodes as WorldNodeWithOptionalPayload[];
 
-      const locationIds = worldNodes
-        .filter(x => x.locationId !== null)
-        .map(x => x.locationId) as string[];
+      const locationIds = typedWorldNodes
+        .filter(x => x.type === 'Location' && x.WorldContent)
+        .map(x => x.WorldContent?.Id) as string[];
 
-      const locations = await ctx.db.location.findMany({
+      const locations = await ctx.db.worldContent.findMany({
         where: {
           Id: {
             in: locationIds,
@@ -85,24 +89,21 @@ export const worldMapRouter = createTRPCRouter({
           id: world.RootNodeId,
         },
         include: {
-          location: true,
-          character: true,
-          item: true,
-          narration: true,
+          WorldContent: true,
         },
       });
 
       if (!worldNodes) throw new Error(`Not found`);
 
-      const typedWorldNodes = worldNodes as WorldNodeWithPayload[];
+      const typedWorldNodes = worldNodes as WorldNodeWithOptionalPayload[];
       const edges: Edge[] = [];
       const nodes: Node[] = [];
 
       const locationIds = typedWorldNodes
-        .filter(x => x.locationId !== null)
-        .map(x => x.locationId) as string[];
+        .filter(x => x.type === 'Location' && x.WorldContent)
+        .map(x => x.WorldContent?.Id) as string[];
 
-      const locations = await ctx.db.location.findMany({
+      const locations = await ctx.db.worldContent.findMany({
         where: {
           Id: {
             in: locationIds,
@@ -130,16 +131,13 @@ export const worldMapRouter = createTRPCRouter({
             id: nodeId,
           },
           include: {
-            location: true,
-            character: true,
-            item: true,
-            narration: true,
+            WorldContent: true,
           },
         });
 
         if (!children) return;
 
-        (children as WorldNodeWithPayload[]).forEach(node => {
+        (children as WorldNodeWithOptionalPayload[]).forEach(node => {
           const childrenPayload = getWorldNodePayload(node);
           edges.push({
             id: `${payloadId}-${childrenPayload.Id}`,

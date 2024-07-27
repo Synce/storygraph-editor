@@ -16,49 +16,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Location {
+model WorldContent {
   Id          String       @id @unique @default(uuid())
   Name        String?
   Comment     String?
   IsObject    Boolean?
-  Attributes  Json?
   Connections Connection[]
-  WorldNode   WorldNode?
-}
 
-model Narration {
-  Id         String     @id @unique @default(cuid())
-  Name       String?
   /// [Attributes]
   Attributes Json?
-  WorldNode  WorldNode?
-}
 
-model Item {
-  Id         String     @id @unique @default(uuid())
-  Name       String?
-  /// [Attributes]
-  Attributes Json?
-  WorldNode  WorldNode?
-}
-
-model Character {
-  Id         String     @id @unique @default(uuid())
-  Name       String?
-  Comment    String?
-  IsObject   Boolean?
-  /// [Attributes]
-  Attributes Json?
-  WorldNode  WorldNode?
+  WorldNode   WorldNode @relation(fields: [worldNodeId], references: [id])
+  worldNodeId Int       @unique
 }
 
 model Connection {
-  Id          String    @id @unique @default(uuid())
-  Destination String
+  Id             String       @id @unique @default(uuid())
+  Destination    String
   /// [Attributes]
-  Attributes  Json?
-  Location    Location? @relation(fields: [locationId], references: [Id])
-  locationId  String?
+  Attributes     Json?
+  WorldContent   WorldContent @relation(fields: [worldContentId], references: [Id])
+  worldContentId String
 }
 
 model WorldNode {
@@ -69,17 +47,10 @@ model WorldNode {
   numchild Int    @default(0)
   //
 
-  type        WorldNodeType
-  character   Character?    @relation(fields: [characterId], references: [Id])
-  item        Item?         @relation(fields: [itemId], references: [Id])
-  narration   Narration?    @relation(fields: [narrationId], references: [Id])
-  location    Location?     @relation(fields: [locationId], references: [Id])
-  characterId String?       @unique
-  itemId      String?       @unique
-  narrationId String?       @unique
-  locationId  String?       @unique
+  type WorldNodeType
 
-  World World?
+  World        World?
+  WorldContent WorldContent?
 }
 
 model World {

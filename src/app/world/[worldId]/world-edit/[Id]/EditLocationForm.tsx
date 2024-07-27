@@ -19,20 +19,18 @@ import {parseAttributesSchema} from '@utils/misc';
 import SubContentList from './SubContentList';
 
 type EditFormProps = {
-  location: NonNullable<RouterOutputs['world']['getLocation']>;
+  node: NonNullable<RouterOutputs['world']['getNode']>;
 };
-const EditForm = ({location}: EditFormProps) => {
+const EditForm = ({node}: EditFormProps) => {
   const methods = useForm<EditNodeSchema>({
     mode: 'onChange',
     resolver: zodResolver(editNodeSchema),
 
     defaultValues: {
-      Type: 'location',
-      Name: location.Name,
-      Comment: location.Comment,
-      GivenId: location.GivenId,
-      Id: location.Id,
-      Attributes: parseAttributesSchema(location.Attributes),
+      Name: node.Name,
+      Comment: node.Comment,
+      Id: node.Id,
+      Attributes: parseAttributesSchema(node.Attributes),
     },
   });
 
@@ -67,12 +65,7 @@ const EditForm = ({location}: EditFormProps) => {
       onSubmit={handleSubmit(onSubmit)}
       className="bg-background2 mb-10 mt-6 flex h-full flex-col justify-between rounded p-5">
       <div className="flex flex-col gap-5">
-        <FormInput
-          field={{label: 'Id'}}
-          control={control}
-          name="GivenId"
-          disabled
-        />
+        <FormInput field={{label: 'Id'}} control={control} name="Id" disabled />
         <FormInput field={{label: 'Name'}} control={control} name="Name" />
         <FormInput
           field={{label: 'Comment'}}
@@ -81,19 +74,19 @@ const EditForm = ({location}: EditFormProps) => {
         />
 
         <SubContentList
-          Type="character"
-          locationId={location.Id}
-          content={location.Characters}
+          Type="Character"
+          parentWorldNodeId={node.worldNodeId}
+          content={node.Character}
         />
         <SubContentList
-          Type="item"
-          locationId={location.Id}
-          content={location.Items}
+          Type="Item"
+          parentWorldNodeId={node.worldNodeId}
+          content={node.Item}
         />
         <SubContentList
-          Type="narration"
-          locationId={location.Id}
-          content={location.Narration}
+          Type="Narration"
+          parentWorldNodeId={node.worldNodeId}
+          content={node.Narration}
         />
 
         <FormProvider {...methods}>

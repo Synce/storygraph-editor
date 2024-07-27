@@ -57,7 +57,7 @@ const LocationNode = ({
         </p>
         <Link
           className="z-10 rounded-sm bg-slate-800 p-1"
-          href={`${pathname}/location/${data.Id}`}>
+          href={`${pathname}/${data.Id}`}>
           {'EDYTUJ'}
         </Link>
       </div>
