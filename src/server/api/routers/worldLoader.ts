@@ -70,6 +70,11 @@ export const worldLoaderRouter = createTRPCRouter({
                       : undefined,
                 },
               },
+              World: {
+                connect: {
+                  Id: worldId,
+                },
+              },
             },
           });
 
@@ -116,4 +121,25 @@ export const worldLoaderRouter = createTRPCRouter({
 
       return createdWorld;
     }),
+  createWorld: publicProcedure.mutation(async ({ctx}) => {
+    const createdWorldRoot: WorldNodeWithWorld =
+      await ctx.db.worldNode.createRoot({
+        data: {
+          type: 'World',
+          World: {
+            create: {
+              Title: 'Nowy świat',
+              TitleGeneric: '',
+              Description: '',
+              Override: 0,
+            },
+          },
+        },
+        include: {
+          World: true,
+        },
+      });
+
+    return createdWorldRoot.World!;
+  }),
 });

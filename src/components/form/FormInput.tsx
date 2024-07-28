@@ -7,8 +7,7 @@ import {
 
 import Input, {type InputProps} from './Input';
 
-export type FormInputProps<T extends FieldValues> = UseControllerProps<T> &
-  InputProps;
+type FormInputProps<T extends FieldValues> = UseControllerProps<T> & InputProps;
 
 const FormInput = <T extends FieldValues>({
   field,

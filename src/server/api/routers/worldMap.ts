@@ -14,21 +14,19 @@ export const worldMapRouter = createTRPCRouter({
       }),
     )
     .query(async ({ctx, input}) => {
-      const world = await ctx.db.world.findFirstOrThrow({
-        where: {Id: input.Id},
+      const node = await ctx.db.worldNode.findFirstOrThrow({
+        where: {worldId: input.Id, depth: 1},
       });
 
       const worldNodes = await ctx.db.worldNode.findChildren({
-        where: {
-          id: world.RootNodeId,
-        },
+        node,
         include: {
           WorldContent: true,
         },
       });
 
-      if (!worldNodes) throw new Error(`Not found`);
-      const typedWorldNodes = worldNodes as WorldNodeWithOptionalPayload[];
+      const typedWorldNodes = (worldNodes ??
+        []) as WorldNodeWithOptionalPayload[];
 
       const locationIds = typedWorldNodes
         .filter(x => x.type === 'Location' && x.WorldContent)
@@ -80,22 +78,19 @@ export const worldMapRouter = createTRPCRouter({
       }),
     )
     .query(async ({ctx, input}) => {
-      const world = await ctx.db.world.findFirstOrThrow({
-        where: {Id: input.Id},
+      const node = await ctx.db.worldNode.findFirstOrThrow({
+        where: {worldId: input.Id, depth: 1},
       });
 
       const worldNodes = await ctx.db.worldNode.findDescendants({
-        where: {
-          id: world.RootNodeId,
-        },
+        node,
         include: {
           WorldContent: true,
         },
       });
 
-      if (!worldNodes) throw new Error(`Not found`);
-
-      const typedWorldNodes = worldNodes as WorldNodeWithOptionalPayload[];
+      const typedWorldNodes = (worldNodes ??
+        []) as WorldNodeWithOptionalPayload[];
       const edges: Edge[] = [];
       const nodes: Node[] = [];
 

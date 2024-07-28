@@ -3,7 +3,8 @@ import {notFound} from 'next/navigation';
 import {api} from '@/trpc/server';
 import {convertToPlainObject} from '@utils/misc';
 
-import EditLocationForm from './EditLocationForm';
+import EditNodeForm from './EditNodeForm';
+import WorldBreadCrumbs from './WorldBreadCrumbs';
 
 type WorldEditPageProps = {
   params: {
@@ -14,11 +15,18 @@ type WorldEditPageProps = {
 
 const WorldEditPage = async ({params: {Id}}: WorldEditPageProps) => {
   const node = await api.world.getNode({Id});
+  const path = await api.world.getAncestors({Id});
+
   if (!node) notFound();
 
   return (
-    <div className="flex min-h-full w-full flex-col bg-slate-700">
-      <EditLocationForm node={convertToPlainObject(node)} />
+    <div className="flex w-full flex-col items-center bg-slate-700 px-8">
+      <WorldBreadCrumbs
+        path={path}
+        currentItemId={Id}
+        currentItemName={node.Name}
+      />
+      <EditNodeForm node={convertToPlainObject(node)} />
     </div>
   );
 };

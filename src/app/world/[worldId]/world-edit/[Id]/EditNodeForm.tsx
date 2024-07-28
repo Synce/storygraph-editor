@@ -8,6 +8,7 @@ import {api} from '@/trpc/react';
 import {type RouterOutputs} from '@/trpc/shared';
 import AttributesInput from '@components/form/AttributesInput';
 import FormInput from '@components/form/FormInput';
+import Input from '@components/form/Input';
 import {Button} from '@components/ui/Button';
 import {useToast} from '@hooks/useToast';
 import {
@@ -18,10 +19,10 @@ import {parseAttributesSchema} from '@utils/misc';
 
 import SubContentList from './SubContentList';
 
-type EditFormProps = {
+type EditNodeFormProps = {
   node: NonNullable<RouterOutputs['world']['getNode']>;
 };
-const EditForm = ({node}: EditFormProps) => {
+const EditNodeForm = ({node}: EditNodeFormProps) => {
   const methods = useForm<EditNodeSchema>({
     mode: 'onChange',
     resolver: zodResolver(editNodeSchema),
@@ -30,6 +31,7 @@ const EditForm = ({node}: EditFormProps) => {
       Name: node.Name,
       Comment: node.Comment,
       Id: node.Id,
+      IsObject: node.IsObject,
       Attributes: parseAttributesSchema(node.Attributes),
     },
   });
@@ -41,7 +43,6 @@ const EditForm = ({node}: EditFormProps) => {
   } = methods;
   const {toast} = useToast();
   const router = useRouter();
-
   const updateLocation = api.world.updateNode.useMutation({
     onError: err => {
       toast({
@@ -61,11 +62,11 @@ const EditForm = ({node}: EditFormProps) => {
     updateLocation.mutate(data);
   };
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="bg-background2 mb-10 mt-6 flex h-full flex-col justify-between rounded p-5">
-      <div className="flex flex-col gap-5">
-        <FormInput field={{label: 'Id'}} control={control} name="Id" disabled />
+    <div className="flex w-full flex-row gap-2 px-4">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="flex w-1/2 flex-col rounded bg-slate-600 p-4 ">
+        <Input field={{label: 'Id'}} value={node.Id} disabled />
         <FormInput field={{label: 'Name'}} control={control} name="Name" />
         <FormInput
           field={{label: 'Comment'}}
@@ -73,6 +74,14 @@ const EditForm = ({node}: EditFormProps) => {
           name="Comment"
         />
 
+        <FormProvider {...methods}>
+          <AttributesInput control={control} />
+        </FormProvider>
+        <Button disabled={!isValid} type="submit">
+          {'Zapisz'}
+        </Button>
+      </form>
+      <div className=" flex w-1/2 flex-col gap-4 rounded bg-slate-600 p-4">
         <SubContentList
           Type="Character"
           parentWorldNodeId={node.worldNodeId}
@@ -88,16 +97,9 @@ const EditForm = ({node}: EditFormProps) => {
           parentWorldNodeId={node.worldNodeId}
           content={node.Narration}
         />
-
-        <FormProvider {...methods}>
-          <AttributesInput control={control} />
-        </FormProvider>
-        <Button disabled={!isValid} type="submit">
-          {'Zapisz'}
-        </Button>
       </div>
-    </form>
+    </div>
   );
 };
 
-export default EditForm;
+export default EditNodeForm;

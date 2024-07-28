@@ -20,13 +20,11 @@ const editAttributesSchema = z.discriminatedUnion('type', [
 
 const nodeType = z.enum(['Character', 'Location', 'Item', 'Narration']);
 
-export type NodeType = z.infer<typeof nodeType>;
-
 export const editNodeSchema = z.object({
   Id: z.string(),
-  Type: nodeType,
   Name: z.string().optional().nullable(),
   Comment: z.string().optional().nullable(),
+  IsObject: z.boolean().optional().nullable(),
   Attributes: z
     .array(editAttributesSchema)
     .refine(

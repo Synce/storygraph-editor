@@ -4,23 +4,20 @@ import Link from 'next/link';
 import {useParams} from 'next/navigation';
 
 import {Button, buttonVariants} from '@components/ui/Button';
-import {type NodeType} from '@schemas/worldInputApiSchemas';
 
 type SubContentProps = {
   name?: string | null;
   Id: string;
-  type: NodeType;
   onDelete: () => void;
 };
-const SubContent = ({name, type, Id, onDelete}: SubContentProps) => {
+const SubContent = ({name, Id, onDelete}: SubContentProps) => {
   const {worldId} = useParams();
 
   return (
-    <div className="flex flex-row items-center gap-5 border-b border-t border-white bg-gray-700 py-4">
-      <div className="flex flex-col gap-2">
+    <div className="flex flex-row items-center justify-between  rounded  bg-gray-700 px-4 py-2">
+      <div className="flex flex-col gap-1">
         <p className="text-lg font-bold">{name}</p>
-        <p>{Id}</p>
-        <p>{type}</p>
+        <p className="text-sm">{Id}</p>
       </div>
       <div className="flex flex-row gap-2">
         <Link

@@ -14,10 +14,18 @@ export const worldRouter = createTRPCRouter({
   getWorld: publicProcedure
     .input(z.object({Id: z.string()}))
     .query(({ctx, input}) => {
-      return ctx.db.world.findFirst({
+      return ctx.db.world.findFirstOrThrow({
         where: {
           Id: input.Id,
         },
+      });
+    }),
+
+  getWorldRoot: publicProcedure
+    .input(z.object({Id: z.string()}))
+    .query(({ctx, input}) => {
+      return ctx.db.worldNode.findFirstOrThrow({
+        where: {worldId: input.Id, depth: 1},
       });
     }),
   getNode: publicProcedure
@@ -64,7 +72,7 @@ export const worldRouter = createTRPCRouter({
   updateNode: publicProcedure
     .input(editNodeSchema)
     .mutation(async ({ctx, input}) => {
-      const {Id, Attributes, Type, ...data} = input;
+      const {Id, Attributes, ...data} = input;
 
       const parsedAttributes = Attributes?.reduce((acc, attribute) => {
         acc[attribute.key] = attribute.value;
@@ -157,33 +165,109 @@ export const worldRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ctx, input}) => {
-      const content = ctx.db.worldContent.findFirstOrThrow({
+      const content = await ctx.db.worldContent.findFirstOrThrow({
         where: {
           Id: input.Id,
+        },
+      });
+      await ctx.db.connection.deleteMany({
+        where: {
+          Destination: input.Id,
         },
       });
 
       return ctx.db.worldNode.deleteNode({
         where: {
-          id: (await content).worldNodeId,
+          id: content.worldNodeId,
         },
       });
     }),
 
-  addNode: publicProcedure.input(addNodeSchema).mutation(({ctx, input}) => {
-    return ctx.db.worldNode.createChild({
-      where: {id: input.parentWorldNodeId},
-      data: {
-        type: input.Type,
-        WorldContent: {
-          create: {
-            Name: 'Brak nazwy',
+  addNode: publicProcedure
+    .input(addNodeSchema)
+    .mutation(async ({ctx, input}) => {
+      const node = await ctx.db.worldNode.findFirstOrThrow({
+        where: {id: input.parentWorldNodeId},
+      });
+
+      return ctx.db.worldNode.createChild({
+        node,
+        data: {
+          World: {
+            connect: {
+              Id: node.worldId,
+            },
+          },
+          type: input.Type,
+          WorldContent: {
+            create: {
+              Name: 'Brak nazwy',
+            },
           },
         },
-      },
-      include: {
-        WorldContent: true,
-      },
-    }) as unknown as WorldNodeWithPayload;
-  }),
+        include: {
+          WorldContent: true,
+        },
+      }) as Promise<WorldNodeWithPayload>;
+    }),
+
+  findNodes: publicProcedure
+    .input(
+      z.object({
+        search: z.string(),
+        worldId: z.string(),
+      }),
+    )
+    .query(({ctx, input}) => {
+      const {search} = input;
+
+      return ctx.db.worldContent.findMany({
+        where: {
+          WorldNode: {
+            worldId: input.worldId,
+          },
+          OR: [
+            {
+              Name: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              Comment: {
+                contains: search,
+                mode: 'insensitive',
+              },
+            },
+            {
+              Id: {
+                equals: search,
+              },
+            },
+          ],
+        },
+        include: {WorldNode: true},
+        take: 10,
+      });
+    }),
+  getAncestors: publicProcedure
+    .input(
+      z.object({
+        Id: z.string(),
+      }),
+    )
+    .query(async ({ctx, input}) => {
+      const node = await ctx.db.worldNode.findFirstOrThrow({
+        where: {
+          WorldContent: {
+            Id: input.Id,
+          },
+        },
+      });
+
+      return ctx.db.worldNode.findAncestors({
+        node,
+        include: {WorldContent: true},
+      }) as Promise<WorldNodeWithPayload[]>;
+    }),
 });

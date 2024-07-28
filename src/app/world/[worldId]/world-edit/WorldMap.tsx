@@ -1,7 +1,8 @@
 'use client';
 
+import {instance} from '@viz-js/viz';
 import ELK from 'elkjs/lib/elk.bundled.js';
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -19,11 +20,13 @@ import ReactFlow, {
 
 import 'reactflow/dist/style.css';
 
+import {type GraphvizJson} from '@/interfaces/IGraphViz';
 import {api} from '@/trpc/react';
 import {type RouterOutputs} from '@/trpc/shared';
 import {Button} from '@components/ui/Button';
 import {useToast} from '@hooks/useToast';
 import {cn} from '@utils/cn';
+import {convertToDot, graphvizToReactFlow} from '@utils/misc';
 
 import CustomConnectionLine from './CustomConnectionLine';
 import FloatingEdge from './FloatingEdge';
@@ -108,9 +111,22 @@ const WorldMap = ({
 }: WorldMapProps) => {
   const [nodes, setNodes] = useState<ExtendedNode[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
+
+  useEffect(() => {
+    const dotString = convertToDot(initialNodes, initialEdges);
+
+    void instance().then(viz => {
+      const json = viz.renderJSON(dotString, {engine: 'fdp'});
+      const {nodes, edges} = graphvizToReactFlow(json as GraphvizJson);
+      console.log('ZAŁADOWANO');
+      setNodes(nodes);
+      setEdges(edges);
+    });
+  }, [initialNodes, initialEdges]);
+
   const {fitView, setCenter} = useReactFlow();
   const {toast} = useToast();
-  const world = api.world.getWorld.useQuery({Id: worldId});
+  const root = api.world.getWorldRoot.useQuery({Id: worldId});
 
   const [loaded, setLoaded] = useState(false);
 
@@ -218,8 +234,8 @@ const WorldMap = ({
 
     void getLayoutedElements(ns, es).then(
       ({nodes: layoutedNodes, edges: layoutedEdges}) => {
-        setNodes(layoutedNodes);
-        setEdges(layoutedEdges);
+        // setNodes(layoutedNodes);
+        // setEdges(layoutedEdges);
         setLoaded(true);
       },
     );
@@ -278,9 +294,9 @@ const WorldMap = ({
       )}>
       <Button
         onClick={() => {
-          if (world.data)
+          if (root.data)
             addNode.mutate({
-              parentWorldNodeId: world.data.RootNodeId,
+              parentWorldNodeId: root.data.id,
               Type: 'Location',
             });
         }}

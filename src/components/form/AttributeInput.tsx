@@ -22,7 +22,7 @@ const AttributeInput = ({control, index, onRemove}: AttributeInputProps) => {
   const {trigger} = useFormContext<EditNodeSchema>();
 
   return (
-    <div className="flex items-center gap-10 border-b border-t">
+    <div className="flex items-center gap-10  rounded bg-slate-700 p-4">
       <FormInput
         field={{label: 'Klucz'}}
         control={control}
