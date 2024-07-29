@@ -1,0 +1,87 @@
+[
+  {
+    "Title": "World PWK 2021 / Świat PWK 2021",
+    "TitleGeneric": "",
+    "Description": "Produkcja składająca się wyłącznie z lewej strony.",
+    "Override": 0,
+    "LSide": {
+      "Locations": [
+        {
+          "Id": "140328927472448",
+          "Name": "Road",
+          "Characters": [
+            {
+              "Name": "Main_hero",
+              "Attributes": {
+                "HP": 100,
+                "Money": 10
+              },
+              "Items": [
+                {
+                  "Name": "Sword",
+                  "Attributes": {
+                    "IsWeapon": true,
+                    "Value": 1000
+                  },
+                  "Characters": [
+                    {
+                      "Name": "Main_hero",
+                      "Attributes": {
+                        "HP": 100,
+                        "Money": 10
+                      },
+                      "Connections": [
+                        {
+                          "Destination": "140328926971328"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "Name": "Lawyer",
+              "Attributes": {
+                "HP": 100,
+                "Money": 100
+              },
+              "Narration": [
+                {
+                  "Name": "Game_goal",
+                  "Attributes": {
+                    "Knowledge": "The top-secret documents have to be delivered to Overseas Territory. Take them and board the ship. / Tajne dokumenty, któe trzeba dostarczyć do zamorskiego królestwa. Przejmij je i dotrzyj na statek."
+                  }
+                }
+              ],
+              "Items": [
+                {
+                  "Name": "Documents",
+                  "Attributes": {
+                    "IsTopSecret": true
+                  }
+                }
+              ]
+            }
+          ],
+          "Connections": [
+            {
+              "Destination": "140328926971328"
+            }
+          ]
+        },
+        {
+          "Id": "140328926971328",
+          "Name": "Forest",
+          "Connections": [
+            {
+              "Destination": "140328927472448"
+            }
+          ]
+        }
+      ]
+    },
+    "RSide": {},
+    "Instructions": []
+  }
+]
