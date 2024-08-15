@@ -7,6 +7,7 @@ import {FormProvider, useForm} from 'react-hook-form';
 import {api} from '@/trpc/react';
 import {type RouterOutputs} from '@/trpc/shared';
 import AttributesInput from '@components/form/AttributesInput';
+import FormCheckbox from '@components/form/FormCheckbox';
 import FormInput from '@components/form/FormInput';
 import Input from '@components/form/Input';
 import {Button} from '@components/ui/Button';
@@ -72,6 +73,11 @@ const EditNodeForm = ({node}: EditNodeFormProps) => {
           field={{label: 'Comment'}}
           control={control}
           name="Comment"
+        />
+        <FormCheckbox
+          control={control}
+          name="IsObject"
+          rightElement={<p>{'IsObject'}</p>}
         />
 
         <FormProvider {...methods}>

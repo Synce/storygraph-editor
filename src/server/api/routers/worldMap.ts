@@ -1,10 +1,20 @@
-import {type Node, type Edge} from 'reactflow';
+import {type Edge} from 'reactflow';
 import {z} from 'zod';
 
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
 import {getWorldNodePayload} from '@utils/misc';
 
 import {type WorldNodeWithOptionalPayload} from '../interfaces/IWorldApi';
+
+type Node = {
+  id: string;
+  type: string;
+  data: {
+    Id: string;
+    Name: string | null;
+    Type: string;
+  };
+};
 
 export const worldMapRouter = createTRPCRouter({
   getWorldMap: publicProcedure
@@ -15,7 +25,7 @@ export const worldMapRouter = createTRPCRouter({
     )
     .query(async ({ctx, input}) => {
       const node = await ctx.db.worldNode.findFirstOrThrow({
-        where: {worldId: input.Id, depth: 1},
+        where: {worldId: input.Id, type: 'World'},
       });
 
       const worldNodes = await ctx.db.worldNode.findChildren({
@@ -28,9 +38,7 @@ export const worldMapRouter = createTRPCRouter({
       const typedWorldNodes = (worldNodes ??
         []) as WorldNodeWithOptionalPayload[];
 
-      const locationIds = typedWorldNodes
-        .filter(x => x.type === 'Location' && x.WorldContent)
-        .map(x => x.WorldContent?.Id) as string[];
+      const locationIds = typedWorldNodes.map(x => x.WorldContent!.Id);
 
       const locations = await ctx.db.worldContent.findMany({
         where: {
@@ -51,10 +59,6 @@ export const worldMapRouter = createTRPCRouter({
             Id: location.Id,
             Name: location.Name,
             Type: 'Location',
-          },
-          position: {
-            x: Math.random() * 100,
-            y: Math.random() * 100,
           },
         };
       });
@@ -79,7 +83,7 @@ export const worldMapRouter = createTRPCRouter({
     )
     .query(async ({ctx, input}) => {
       const node = await ctx.db.worldNode.findFirstOrThrow({
-        where: {worldId: input.Id, depth: 1},
+        where: {worldId: input.Id, type: 'World'},
       });
 
       const worldNodes = await ctx.db.worldNode.findDescendants({
@@ -94,9 +98,7 @@ export const worldMapRouter = createTRPCRouter({
       const edges: Edge[] = [];
       const nodes: Node[] = [];
 
-      const locationIds = typedWorldNodes
-        .filter(x => x.type === 'Location' && x.WorldContent)
-        .map(x => x.WorldContent?.Id) as string[];
+      const locationIds = typedWorldNodes.map(x => x.WorldContent!.Id);
 
       const locations = await ctx.db.worldContent.findMany({
         where: {
@@ -152,10 +154,6 @@ export const worldMapRouter = createTRPCRouter({
             Id: payload.Id,
             Name: payload.Name,
             Type: node.type,
-          },
-          position: {
-            x: Math.random() * 100,
-            y: Math.random() * 100,
           },
         });
 

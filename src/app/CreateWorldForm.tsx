@@ -67,7 +67,10 @@ const CreateWorldForm = () => {
           onChange={e => setFile(e.target.files?.[0])}
           accept="application/JSON"
         />
-        <Button loading={loadWorld.isPending} onClick={onSubmit}>
+        <Button
+          loading={loadWorld.isPending}
+          disabled={!file}
+          onClick={onSubmit}>
           {'Wyślij'}
         </Button>
       </div>
@@ -89,6 +92,7 @@ const CreateWorldForm = () => {
           onChange={e => setText(e.target.value)}
         />
         <Button
+          disabled={!text}
           onClick={() => {
             router.push(`/world/${text}/world-edit`);
           }}>

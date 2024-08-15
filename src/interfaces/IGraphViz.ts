@@ -15,6 +15,7 @@ interface Node {
   pos: string;
   width: string;
   height: string;
+  data: string;
 }
 
 interface Edge {

@@ -1,33 +1,46 @@
 import {api} from '@/trpc/server';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@components/ui/Accordion';
 import {Button} from '@components/ui/Button';
-import {ScrollArea, ScrollBar} from '@components/ui/ScrollArea';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@components/ui/Dialog';
+
+import CopyJsonButton from './CopyJsonButton';
+import DownloadJSONButton from './DownloadJSONButton';
+import WorldVerification from './WorldVerification';
 
 type WorldJsonProps = {
   Id: string;
 };
 
 const WorldJson = async ({Id}: WorldJsonProps) => {
-  const world = await api.world.getWorld({Id});
+  const world = await api.worldExport.exportJSON({Id});
 
   return (
-    <Accordion type="single" collapsible className="z-50 w-full">
-      <AccordionItem value="item-1">
-        <AccordionTrigger className="px-10">{'JSON'}</AccordionTrigger>
-        <AccordionContent className="absolute z-10 h-[80vh] w-full border border-slate-200 bg-slate-700">
-          <ScrollArea className="h-full">
-            <pre>{JSON.stringify(world, null, 2)}</pre>
-            <Button className="absolute right-2 top-2">{'Kopiuj'}</Button>
-            <ScrollBar />
-          </ScrollArea>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>{'Wyeksportuj świat'}</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{'Eksportowanie świata'}</DialogTitle>
+          <WorldVerification world={world} />
+        </DialogHeader>
+        <DialogFooter>
+          <DownloadJSONButton world={world} />
+
+          <CopyJsonButton world={world} />
+          <DialogClose asChild>
+            <Button variant="destructive">{'Zamknij'}</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

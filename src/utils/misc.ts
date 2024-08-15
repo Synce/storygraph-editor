@@ -1,10 +1,12 @@
-import {type Node, type Edge} from 'reactflow';
+import {type WorldNodeType} from '@prisma/client';
+import {type Edge} from 'reactflow';
 import seedrandom from 'seedrandom';
 import superjson from 'superjson';
 import {v4 as uuidv4, type V4Options} from 'uuid';
 
 import {type GraphvizJson} from '@/interfaces/IGraphViz';
 import {type WorldNodeWithOptionalPayload} from '@/server/api/interfaces/IWorldApi';
+import {toast} from '@hooks/useToast';
 import {type EditAttributesSchema} from '@schemas/worldInputApiSchemas';
 
 export const parseAttributesSchema = (
@@ -44,11 +46,14 @@ export function seededUUID(seed: string): string {
 
 export const getWorldNodePayload = (node: WorldNodeWithOptionalPayload) => {
   const payload = node.WorldContent;
-  if (!payload) throw new Error(`No payload ${node.id}`);
+  if (!payload) throw new Error(`No payload ${node.id} ${node.type}`);
   return payload;
 };
 
-export const convertToDot = (nodes: Node[], edges: Edge[]): string => {
+export const convertToDot = (
+  nodes: {id: string; data: object}[],
+  edges: Edge[],
+): string => {
   let dotString = 'digraph G {\n';
 
   dotString +=
@@ -77,7 +82,11 @@ export const graphvizToReactFlow = (json: GraphvizJson) => {
     return {
       id: node.name,
       type: 'worldNode',
-      data: JSON.parse(node.data),
+      data: JSON.parse(node.data) as {
+        Name: string;
+        Id: string;
+        Type: WorldNodeType;
+      },
       position: {x: x! - width / 2, y: y! - height / 2},
     };
   });
@@ -89,4 +98,36 @@ export const graphvizToReactFlow = (json: GraphvizJson) => {
   }));
 
   return {nodes, edges};
+};
+
+export const copyJsonToClipboard = (jsonData: object) => {
+  const jsonString = JSON.stringify(jsonData, null, 2);
+  navigator.clipboard
+    .writeText(jsonString)
+    .then(() => {
+      toast({
+        title: 'Skopiowano',
+      });
+    })
+    .catch(err => {
+      console.error('Błąd przy kopiowaniu JSON-a do schowka:', err);
+    });
+};
+
+export const downloadJsonToFile = (
+  jsonData: object,
+  filename = 'data.json',
+) => {
+  const jsonString = JSON.stringify(jsonData, null, 2);
+  const blob = new Blob([jsonString], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
