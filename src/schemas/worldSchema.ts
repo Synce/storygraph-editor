@@ -2,7 +2,7 @@ import {z} from 'zod';
 
 const dictionarySchema = z.record(
   z.string(),
-  z.union([z.string(), z.number(), z.boolean()]),
+  z.union([z.string(), z.number(), z.boolean(), z.null()]),
 );
 
 export type NodeSchema = {
@@ -10,7 +10,7 @@ export type NodeSchema = {
   Id?: string;
   Comment?: string;
   IsObject?: boolean;
-  Attributes?: Record<string, string | number | boolean>;
+  Attributes?: Record<string, string | number | boolean | null>;
   Items?: NodeSchema[];
   Narration?: NodeSchema[];
   Characters?: NodeSchema[];
@@ -46,7 +46,7 @@ export const worldSchema = z.object({
     Locations: z.array(nodeSchema),
   }),
   RSide: z.object({}),
-  Preconditions: z.object({}).optional(),
+  Preconditions: z.array(z.object({})).optional(),
   Instructions: z.array(z.object({})),
 });
 

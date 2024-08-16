@@ -1,4 +1,6 @@
 import {type WorldNodeType} from '@prisma/client';
+import Ajv, {type AnySchema} from 'ajv';
+import axios from 'axios';
 import {type Edge} from 'reactflow';
 import seedrandom from 'seedrandom';
 import superjson from 'superjson';
@@ -81,7 +83,7 @@ export const graphvizToReactFlow = (json: GraphvizJson) => {
     const height = parseFloat(node.height) * 72;
     return {
       id: node.name,
-      type: 'worldNode',
+      type: 'customNode',
       data: JSON.parse(node.data) as {
         Name: string;
         Id: string;
@@ -130,4 +132,25 @@ export const downloadJsonToFile = (
 
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+};
+
+export const validateJSONSchema = async (schemaUrl: string, data: object) => {
+  try {
+    const response = await axios.get(schemaUrl);
+    const schema = response.data as AnySchema;
+
+    const ajv = new Ajv();
+    const validate = ajv.compile(schema);
+    const valid = validate(data);
+
+    return {
+      valid,
+      errors: validate.errors,
+    };
+  } catch (err) {
+    return {
+      valid: false,
+      errors: err instanceof Error ? err.message : 'Unknown error',
+    };
+  }
 };

@@ -28,9 +28,10 @@ import {cn} from '@utils/cn';
 import {convertToDot, graphvizToReactFlow} from '@utils/misc';
 
 import CustomConnectionLine from './CustomConnectionLine';
-import FloatingEdge from './FloatingEdge';
 import LocationNode from './LocationNode';
 import {MarkerDefinition} from './MarkerDefinition';
+
+import FloatingEdge from '../../../../components/Maps/FloatingEdge';
 
 type NodeData = NonNullable<
   RouterOutputs['worldMap']['getWorldMap']['nodes'][number]
@@ -44,7 +45,7 @@ type WorldMapProps = {
   worldId: string;
 };
 
-const nodeTypes = {worldNode: LocationNode};
+const nodeTypes = {customNode: LocationNode};
 
 const edgeTypes = {
   floating: FloatingEdge,
@@ -198,7 +199,7 @@ const WorldMap = ({
     onSuccess: node => {
       const mapNode = {
         id: node.WorldContent.Id,
-        type: 'worldNode',
+        type: 'customNode',
         data: {
           Id: node.WorldContent.Id,
           Name: node.WorldContent.Name,

@@ -62,7 +62,8 @@ model World {
   Description  String
   Override     Int
 
-  WorldNodes WorldNode[]
+  WorldNodes  WorldNode[]
+  Productions Production[]
 }
 
 enum WorldNodeType {
@@ -71,4 +72,21 @@ enum WorldNodeType {
   Item
   Narration
   World
+}
+
+model Production {
+  Id           String  @id @unique @default(uuid())
+  Title        String
+  TitleGeneric String
+  Description  String
+  Comment      String?
+  Override     Int
+  LSide        Json?
+  Instructions Json?
+  Generic      Boolean
+
+  World   World  @relation(fields: [worldId], references: [Id])
+  worldId String
+
+  @@unique([worldId, Title])
 }

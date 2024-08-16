@@ -20,9 +20,11 @@ const useValidateJSONSchema = (schemaUrl: string, data: object) => {
         const ajv = new Ajv();
         const validate = ajv.compile(schema);
         const valid = validate(data);
-
+        // @ts-expect-error error
         setValidationResult({valid, errors: validate.errors});
       } catch (err) {
+        // @ts-expect-error error
+
         setError(err);
       } finally {
         setLoading(false);
