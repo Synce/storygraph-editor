@@ -5,6 +5,8 @@ import CopyWorldIdButton from '@components/CopyWorldIdButton';
 import Navigator from '@components/Navigator';
 import {Button} from '@components/ui/Button';
 
+import ProductionJson from './ProductionJson';
+
 type ProductionEditLayoutProps = {
   children: React.ReactNode;
   params: {
@@ -30,6 +32,7 @@ const ProductionEditLayout = async ({
           <Link href={`/world/${world.Id}/productions/load`}>
             <Button>{'Załaduj produkcje'}</Button>
           </Link>
+          <ProductionJson worldId={world.Id} />
         </div>
       </div>
       <main className="flex flex-1">{children}</main>

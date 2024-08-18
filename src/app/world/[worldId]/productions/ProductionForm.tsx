@@ -46,8 +46,10 @@ const ProductionForm = ({
       Description: production?.Description ?? '',
       Comment: production?.Comment ?? '',
       Override: production?.Override ?? 0,
-      LSide: production ? JSON.stringify(production.LSide) : '',
-      Instructions: production ? JSON.stringify(production.Instructions) : '',
+      LSide: production ? JSON.stringify(production.LSide, null, 2) : '',
+      Instructions: production
+        ? JSON.stringify(production.Instructions, null, 2)
+        : '',
     },
   });
 
@@ -64,6 +66,22 @@ const ProductionForm = ({
   const {toast} = useToast();
   const router = useRouter();
   const createProduction = api.productions.createProduction.useMutation({
+    onError: err => {
+      toast({
+        title: 'Error',
+        description: err.shape?.message,
+      });
+    },
+    onSuccess: () => {
+      router.push(`/world/${worldId}/productions`);
+      toast({
+        title: 'Sukces',
+        description: 'zapisano',
+      });
+    },
+  });
+
+  const editProduction = api.productions.editProduction.useMutation({
     onError: err => {
       toast({
         title: 'Error',
@@ -98,13 +116,8 @@ const ProductionForm = ({
             });
             return;
           }
-          if (creatingNew) {
-            createProduction.mutate({worldId, production});
-            router.back();
-          } else {
-            createProduction.mutate({worldId, production});
-            router.refresh();
-          }
+          if (creatingNew) createProduction.mutate({worldId, production});
+          else editProduction.mutate({production});
         })
         .catch(({errors}: {errors: unknown}) => {
           toast({

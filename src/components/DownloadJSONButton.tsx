@@ -4,13 +4,14 @@ import {Button} from '@components/ui/Button';
 import {downloadJsonToFile} from '@utils/misc';
 
 type CopyJsonButtonProps = {
-  world: object;
+  json: object;
+  name: string;
 };
-const DownloadJSONButton = ({world}: CopyJsonButtonProps) => {
+const DownloadJSONButton = ({json, name}: CopyJsonButtonProps) => {
   return (
     <Button
       onClick={() => {
-        downloadJsonToFile(world, 'world.json');
+        downloadJsonToFile(json, name);
       }}>
       {'Pobierz plik JSON'}
     </Button>

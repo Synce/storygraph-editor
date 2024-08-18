@@ -124,4 +124,36 @@ export const productionsRouter = createTRPCRouter({
         },
       });
     }),
+  editProduction: publicProcedure
+    .input(z.object({production: productionEditSchema}))
+    .mutation(async ({ctx, input}) => {
+      const {Id, ...data} = input.production;
+      return ctx.db.production.update({
+        where: {Id},
+        data: {
+          ...data,
+          LSide: JSON.parse(data.LSide),
+          Instructions: JSON.parse(data.Instructions),
+        },
+      });
+    }),
+
+  exportProductions: publicProcedure
+    .input(z.object({worldId: z.string(), Generic: z.boolean()}))
+    .mutation(async ({ctx, input}) => {
+      const productions = await ctx.db.production.findMany({
+        where: {worldId: input.worldId, Generic: input.Generic},
+      });
+
+      return productions.map(production => ({
+        Title: production.Title ?? '',
+        TitleGeneric: production.TitleGeneric ?? '',
+        Description: production.Description ?? '',
+        Override: production.Override ?? 0,
+        Comment: production.Comment ?? '',
+        LSide: production.LSide ?? {},
+        Instructions: production.Instructions ?? [],
+        RSide: {},
+      }));
+    }),
 });

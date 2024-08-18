@@ -1,4 +1,6 @@
 import {api} from '@/trpc/server';
+import CopyJsonButton from '@components/CopyJsonButton';
+import DownloadJSONButton from '@components/DownloadJSONButton';
 import {Button} from '@components/ui/Button';
 import {
   Dialog,
@@ -10,8 +12,6 @@ import {
   DialogTrigger,
 } from '@components/ui/Dialog';
 
-import CopyJsonButton from './CopyJsonButton';
-import DownloadJSONButton from './DownloadJSONButton';
 import WorldVerification from './WorldVerification';
 
 type WorldJsonProps = {
@@ -32,7 +32,7 @@ const WorldJson = async ({Id}: WorldJsonProps) => {
           <WorldVerification world={world} />
         </DialogHeader>
         <DialogFooter>
-          <DownloadJSONButton world={world} />
+          <DownloadJSONButton json={world} name={`${world[0]?.Title}.json`} />
 
           <CopyJsonButton world={world} />
           <DialogClose asChild>
