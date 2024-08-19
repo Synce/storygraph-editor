@@ -90,3 +90,39 @@ model Production {
 
   @@unique([worldId, Title])
 }
+
+model Quest {
+  id         Int         @id @default(autoincrement())
+  name       String
+  questNodes QuestNode[]
+}
+
+model QuestNode {
+  id          Int               @id @default(autoincrement())
+  originalId  String            @unique
+  type        QuestNodeType
+  value       String?
+  isMainStory Boolean
+  initiator   String?
+  questId     Int
+  connections QuestConnection[]
+
+  quest Quest @relation(fields: [questId], references: [id])
+}
+
+model QuestConnection {
+  id            Int    @id @default(autoincrement())
+  sourceNodeId  Int
+  destinationId String
+
+  sourceNode QuestNode @relation(fields: [sourceNodeId], references: [id])
+}
+
+enum QuestNodeType {
+  start
+  success
+  death
+  defeat
+  generic_production
+  custom_production
+}
