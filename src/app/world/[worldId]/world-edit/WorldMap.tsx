@@ -1,8 +1,7 @@
 'use client';
 
 import {instance} from '@viz-js/viz';
-import ELK from 'elkjs/lib/elk.bundled.js';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -29,64 +28,24 @@ import {cn} from '@utils/cn';
 import {convertToDot, graphvizToReactFlow} from '@utils/misc';
 
 import CustomConnectionLine from './CustomConnectionLine';
-import FloatingEdge from './FloatingEdge';
 import LocationNode from './LocationNode';
 import {MarkerDefinition} from './MarkerDefinition';
 
+import FloatingEdge from '../../../../components/Maps/FloatingEdge';
+
 type NodeData = NonNullable<
-  RouterOutputs['worldMap']['getWorldMap']['nodes'][number]['data']
+  RouterOutputs['worldMap']['getWorldMap']['nodes'][number]
 >;
 
-type ExtendedNode = Node<NodeData>;
+type ExtendedNode = Node<NodeData['data']>;
 
 type WorldMapProps = {
   edges: Edge[];
-  nodes: ExtendedNode[];
+  nodes: NodeData[];
   worldId: string;
 };
 
-const elk = new ELK();
-
-// - https://www.eclipse.org/elk/reference/options.html
-const elkOptions = {
-  'elk.algorithm': 'layered',
-  'elk.layered.spacing.nodeNodeBetweenLayers': '130',
-  'elk.spacing.nodeNode': '80',
-};
-
-const getLayoutedElements = async (nodes: ExtendedNode[], edges: Edge[]) => {
-  const graph = {
-    id: 'root',
-    layoutOptions: elkOptions,
-    children: nodes.map(node => ({
-      ...node,
-      // Adjust the target and source handle positions based on the layout
-      // direction.
-      targetPosition: 'top',
-      sourcePosition: 'bottom',
-
-      // Hardcode a width and height for elk to use when layouting.
-      width: 130,
-      height: 80,
-    })),
-    edges,
-  };
-  // @ts-expect-error: https://reactflow.dev/examples/layout/elkjs
-  const layoutedGraph = await elk.layout(graph);
-
-  return {
-    nodes: (layoutedGraph?.children?.map(node => ({
-      ...node,
-      // React Flow expects a position property on the node instead of `x`
-      // and `y` fields.
-      position: {x: node.x, y: node.y},
-    })) ?? []) as ExtendedNode[],
-
-    edges: (layoutedGraph.edges ?? []) as unknown as Edge[],
-  };
-};
-
-const nodeTypes = {worldNode: LocationNode};
+const nodeTypes = {customNode: LocationNode};
 
 const edgeTypes = {
   floating: FloatingEdge,
@@ -109,26 +68,24 @@ const WorldMap = ({
   nodes: initialNodes,
   edges: initialEdges,
 }: WorldMapProps) => {
-  const [nodes, setNodes] = useState<ExtendedNode[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [nodes, setNodes] = useState<ExtendedNode[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const dotString = convertToDot(initialNodes, initialEdges);
-
     void instance().then(viz => {
       const json = viz.renderJSON(dotString, {engine: 'fdp'});
       const {nodes, edges} = graphvizToReactFlow(json as GraphvizJson);
-      console.log('ZAŁADOWANO');
       setNodes(nodes);
       setEdges(edges);
+      setLoaded(true);
     });
   }, [initialNodes, initialEdges]);
 
   const {fitView, setCenter} = useReactFlow();
   const {toast} = useToast();
   const root = api.world.getWorldRoot.useQuery({Id: worldId});
-
-  const [loaded, setLoaded] = useState(false);
 
   const addConnection = api.world.addConnection.useMutation({
     onError: err => {
@@ -228,26 +185,8 @@ const WorldMap = ({
     [addConnection],
   );
 
-  const onLayout = useCallback(() => {
-    const ns = nodes;
-    const es = edges;
-
-    void getLayoutedElements(ns, es).then(
-      ({nodes: layoutedNodes, edges: layoutedEdges}) => {
-        // setNodes(layoutedNodes);
-        // setEdges(layoutedEdges);
-        setLoaded(true);
-      },
-    );
-  }, [nodes, edges]);
-
   useEffect(() => {
-    onLayout();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (loaded) fitView({duration: 300});
+    if (loaded) setTimeout(() => fitView({duration: 300}), 1000);
   }, [fitView, loaded]);
 
   const addNode = api.world.addNode.useMutation({
@@ -260,7 +199,7 @@ const WorldMap = ({
     onSuccess: node => {
       const mapNode = {
         id: node.WorldContent.Id,
-        type: 'worldNode',
+        type: 'customNode',
         data: {
           Id: node.WorldContent.Id,
           Name: node.WorldContent.Name,
@@ -303,6 +242,7 @@ const WorldMap = ({
         className="absolute z-10">
         {'Dodaj lokacje'}
       </Button>
+
       <ReactFlow
         nodeTypes={nodeTypes}
         nodes={nodes}

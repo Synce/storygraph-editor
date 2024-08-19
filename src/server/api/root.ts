@@ -3,6 +3,8 @@ import 'server-only'; // Make sure you can't import this on client
 import {worldRouter} from '@/server/api/routers/world';
 import {createTRPCRouter} from '@/server/api/trpc';
 
+import {productionsRouter} from './routers/productions';
+import {worldExportRouter} from './routers/worldExport';
 import {worldLoaderRouter} from './routers/worldLoader';
 import {worldMapRouter} from './routers/worldMap';
 
@@ -15,6 +17,8 @@ export const appRouter = createTRPCRouter({
   world: worldRouter,
   worldLoader: worldLoaderRouter,
   worldMap: worldMapRouter,
+  worldExport: worldExportRouter,
+  productions: productionsRouter,
 });
 
 // export type definition of API

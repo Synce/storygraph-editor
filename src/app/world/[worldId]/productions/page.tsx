@@ -1,16 +1,17 @@
 import RootMap from './RootMap';
 
-type WorldEditPageProps = {
+type ProductionsEditProps = {
   params: {
     worldId: string;
   };
 };
 
-const WorldEditPage = ({params: {worldId}}: WorldEditPageProps) => {
+const ProductionsEdit = ({params: {worldId}}: ProductionsEditProps) => {
   return (
     <div className="flex  w-full grow flex-col bg-slate-700">
       <RootMap Id={worldId} />
     </div>
   );
 };
-export default WorldEditPage;
+
+export default ProductionsEdit;

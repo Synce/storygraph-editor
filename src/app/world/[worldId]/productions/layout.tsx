@@ -1,18 +1,23 @@
+import Link from 'next/link';
+
 import {api} from '@/trpc/server';
 import CopyWorldIdButton from '@components/CopyWorldIdButton';
 import Navigator from '@components/Navigator';
+import {Button} from '@components/ui/Button';
 
-import NodeSearch from './NodeSearch';
-import WorldJson from './WorldJson';
+import ProductionJson from './ProductionJson';
 
-type WorldEditLayoutProps = {
+type ProductionEditLayoutProps = {
   children: React.ReactNode;
   params: {
     worldId: string;
   };
 };
 
-const WorldEditLayout = async ({children, params}: WorldEditLayoutProps) => {
+const ProductionEditLayout = async ({
+  children,
+  params,
+}: ProductionEditLayoutProps) => {
   const world = await api.world.getWorld({Id: params.worldId});
 
   return (
@@ -23,13 +28,15 @@ const WorldEditLayout = async ({children, params}: WorldEditLayoutProps) => {
             <h1 className="text-xl text-white">{`Edycja: ${world.Title}`}</h1>
             <CopyWorldIdButton Id={world.Id} />
           </div>
-          <NodeSearch worldId={world.Id} />
-          <WorldJson Id={world.Id} />
           <Navigator worldId={world.Id} />
+          <Link href={`/world/${world.Id}/productions/load`}>
+            <Button>{'Załaduj produkcje'}</Button>
+          </Link>
+          <ProductionJson worldId={world.Id} />
         </div>
       </div>
       <main className="flex flex-1">{children}</main>
     </div>
   );
 };
-export default WorldEditLayout;
+export default ProductionEditLayout;

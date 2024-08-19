@@ -27,7 +27,7 @@ const NodeSearch = ({worldId}: NodeSearchProps) => {
   );
 
   return (
-    <div className="w-full max-w-md">
+    <div className="relative w-full max-w-md">
       <p className="text-lg">{'Szukaj w świecie'}</p>
       <Input
         onFocus={() => {
@@ -43,7 +43,7 @@ const NodeSearch = ({worldId}: NodeSearchProps) => {
         onChange={e => setQuery(e.target.value)}
       />
       {enabled && (
-        <div className="absolute left-0 top-full  z-[9999] w-full rounded-md border border-gray-200  bg-white text-black">
+        <div className="absolute left-0 right-0  top-full  z-[9999] rounded-md border border-gray-200  bg-white text-black">
           {isLoading && <p className="p-2">{'Loading...'}</p>}
           {error && (
             <p className="p-2">

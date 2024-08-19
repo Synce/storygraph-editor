@@ -1,7 +1,5 @@
 import {type Node} from 'reactflow';
 
-// this helper function returns the intersection point
-// of the line between the center of the intersectionNode and the target node
 const getNodeIntersection = (intersectionNode: Node, targetNode: Node) => {
   // https://math.stackexchange.com/questions/1724792/an-algorithm-for-finding-the-intersection-point-between-a-center-of-vision-and-a
   const {

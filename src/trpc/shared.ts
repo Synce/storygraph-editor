@@ -20,6 +20,7 @@ export function getUrl() {
  *
  * @example type HelloInput = RouterInputs['example']['hello']
  */
+// eslint-disable-next-line import/no-unused-modules
 export type RouterInputs = inferRouterInputs<AppRouter>;
 
 /**
