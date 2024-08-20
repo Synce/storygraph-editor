@@ -5,17 +5,88 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
-  provider  = "postgresql"
-  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+generator json {
+  provider = "prisma-json-types-generator"
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+datasource db {
+  provider = "postgresql"
+  // url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  // directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  url      = env("DATABASE_URL")
+}
 
-  @@index([name])
+model WorldContent {
+  Id          String       @id @unique @default(uuid())
+  Name        String?
+  Comment     String?
+  IsObject    Boolean?
+  Connections Connection[]
+
+  /// [Attributes]
+  Attributes Json?
+
+  WorldNode   WorldNode @relation(fields: [worldNodeId], references: [id], onDelete: Cascade)
+  worldNodeId Int       @unique
+}
+
+model Connection {
+  Id             String       @id @unique @default(uuid())
+  Destination    String
+  /// [Attributes]
+  Attributes     Json?
+  WorldContent   WorldContent @relation(fields: [worldContentId], references: [Id], onDelete: Cascade)
+  worldContentId String
+}
+
+model WorldNode {
+  //prisma-extension-bark internal
+  id       Int    @id @default(autoincrement())
+  path     String @unique
+  depth    Int
+  numchild Int    @default(0)
+  //
+
+  type WorldNodeType
+
+  WorldContent WorldContent?
+
+  World   World  @relation(fields: [worldId], references: [Id])
+  worldId String
+}
+
+model World {
+  Id           String @id @unique @default(uuid())
+  Title        String
+  TitleGeneric String
+  Description  String
+  Override     Int
+
+  WorldNodes  WorldNode[]
+  Productions Production[]
+}
+
+enum WorldNodeType {
+  Character
+  Location
+  Item
+  Narration
+  World
+}
+
+model Production {
+  Id           String  @id @unique @default(uuid())
+  Title        String
+  TitleGeneric String
+  Description  String
+  Comment      String?
+  Override     Int
+  LSide        Json?
+  Instructions Json?
+  Generic      Boolean
+
+  World   World  @relation(fields: [worldId], references: [Id])
+  worldId String
+
+  @@unique([worldId, Title])
 }
