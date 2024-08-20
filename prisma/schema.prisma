@@ -98,14 +98,14 @@ model Quest {
 }
 
 model QuestNode {
-  id          Int               @id @default(autoincrement())
-  originalId  String            @unique
-  type        QuestNodeType
-  value       String?
-  isMainStory Boolean
-  initiator   String?
-  questId     Int
-  connections QuestConnection[]
+  id                  Int               @id @default(autoincrement())
+  originalId          String            @unique
+  type                QuestNodeType
+  productionName      String?
+  productionArguments String?
+  questId             Int
+  isMainStory         Boolean
+  connections         QuestConnection[]
 
   quest Quest @relation(fields: [questId], references: [id])
 }

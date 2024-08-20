@@ -14,22 +14,21 @@ import {mx2json} from '@utils/mx2json';
 
 const CreateWorldForm = () => {
   const {toast} = useToast();
-
   const router = useRouter();
+  const [file, setFile] = useState<File>();
 
-  const loadQuest = api.questLoader.loadWorld.useMutation({
+  const loadQuest = api.questLoader.loadQuest.useMutation({
     onError: err => {
       toast({
         title: 'Error',
         description: err.shape?.message,
       });
     },
-    onSuccess: world => {
-      router.push(`/world/${world.Id}/world-edit`);
+    onSuccess: quest => {
+      // router.push(`/quest/${quest.id}/edit`);
+      console.log('dupa');
     },
   });
-
-  const [file, setFile] = useState<File>();
 
   const onSubmit = () => {
     if (!file) {
@@ -48,11 +47,12 @@ const CreateWorldForm = () => {
 
       const quest = JSON.parse(convertFile) as QuestSchema;
 
-      console.log(quest);
+      if (!quest) {
+        console.error('Invalid quest file');
+        return;
+      }
 
-      //if (!quest) return;
-
-      // loadQuest.mutate(quest);
+      loadQuest.mutate({...quest, fileName: file.name});
     };
 
     reader.onerror = error => {
@@ -71,7 +71,7 @@ const CreateWorldForm = () => {
         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
           const selectedFile = e.target.files?.[0];
           if (selectedFile) {
-            console.log('File selected:', selectedFile.name); // Dodane logowanie
+            console.log('File selected:', selectedFile.name);
             setFile(selectedFile);
           }
         }}
