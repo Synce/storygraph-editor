@@ -99,7 +99,7 @@ model Quest {
 
 model QuestNode {
   id                  Int               @id @default(autoincrement())
-  originalId          String            @unique
+  originalId          String
   type                QuestNodeType
   productionName      String?
   productionArguments String?
@@ -125,4 +125,6 @@ enum QuestNodeType {
   defeat
   generic_production
   custom_production
+  other_quest
+  unknown
 }

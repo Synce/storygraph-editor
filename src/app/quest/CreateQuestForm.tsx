@@ -26,7 +26,7 @@ const CreateWorldForm = () => {
     },
     onSuccess: quest => {
       // router.push(`/quest/${quest.id}/edit`);
-      console.log('dupa');
+      console.log(quest);
     },
   });
 
