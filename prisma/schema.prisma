@@ -64,6 +64,7 @@ model World {
 
   WorldNodes  WorldNode[]
   Productions Production[]
+  Quests      Quest[]
 }
 
 enum WorldNodeType {
@@ -92,9 +93,12 @@ model Production {
 }
 
 model Quest {
-  id         Int         @id @default(autoincrement())
+  id         String      @id @unique @default(uuid())
   name       String
   questNodes QuestNode[]
+
+  World   World  @relation(fields: [worldId], references: [Id])
+  worldId String
 }
 
 model QuestNode {
@@ -103,7 +107,7 @@ model QuestNode {
   type                QuestNodeType
   productionName      String?
   productionArguments String?
-  questId             Int
+  questId             String
   isMainStory         Boolean
   connections         QuestConnection[]
 
@@ -111,7 +115,7 @@ model QuestNode {
 }
 
 model QuestConnection {
-  id            Int    @id @default(autoincrement())
+  id            String @id @unique @default(uuid())
   sourceNodeId  Int
   destinationId String
 

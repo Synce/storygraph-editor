@@ -8,6 +8,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable import/no-unused-modules */
 import {type QuestNode, type QuestNodeType} from '@prisma/client';
+import {z} from 'zod';
 
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
 import {type MxCellSchema, questSchema} from '@schemas/questSchema';
@@ -15,7 +16,7 @@ import {type MxCellSchema, questSchema} from '@schemas/questSchema';
 const findSourceOnlyNode = (
   nodes: QuestNode[],
   connections: any[],
-  questId: number,
+  questId: string,
 ): QuestNode | null => {
   // Ograniczamy przeszukiwanie tylko do węzłów i połączeń związanych z podanym questId
   const relevantNodes = nodes.filter(node => node.questId === questId);
@@ -154,16 +155,23 @@ const getNodeId = (
   return node ? node.id : null;
 };
 
-export const questLoaderRouter = createTRPCRouter({
-  loadQuest: publicProcedure
-    .input(questSchema)
+export const questsRouter = createTRPCRouter({
+  loadQuestFile: publicProcedure
+    .input(
+      z.object({
+        worldId: z.string(),
+        quest: questSchema,
+        fileName: z.string(),
+      }),
+    )
     .mutation(async ({ctx, input}) => {
-      const {mxGraphModel, fileName} = input;
+      const {mxGraphModel} = input.quest;
       const {root} = mxGraphModel;
 
       const createdQuest = await ctx.db.quest.create({
         data: {
-          name: fileName,
+          name: input.fileName,
+          worldId: input.worldId,
         },
       });
 
@@ -189,6 +197,9 @@ export const questLoaderRouter = createTRPCRouter({
       const createdNodes = await ctx.db.questNode.findMany({
         where: {
           questId: createdQuest.id,
+          quest: {
+            worldId: input.worldId,
+          },
         },
       });
 
@@ -206,7 +217,13 @@ export const questLoaderRouter = createTRPCRouter({
       });
 
       const startNode = await ctx.db.questNode.findFirst({
-        where: {type: 'start', questId: createdQuest.id},
+        where: {
+          type: 'start',
+          questId: createdQuest.id,
+          quest: {
+            worldId: input.worldId,
+          },
+        },
       });
 
       const nodeIds = createdNodes.map(node => node.id);
@@ -215,6 +232,11 @@ export const questLoaderRouter = createTRPCRouter({
         where: {
           sourceNodeId: {
             in: nodeIds,
+          },
+          sourceNode: {
+            quest: {
+              worldId: input.worldId,
+            },
           },
         },
       });
@@ -233,12 +255,31 @@ export const questLoaderRouter = createTRPCRouter({
           },
         });
       }
-
-      return ctx.db.quest.findFirst({
-        where: {id: createdQuest.id},
-        include: {questNodes: {include: {connections: true}}},
+    }),
+  getQuests: publicProcedure
+    .input(
+      z.object({
+        worldId: z.string(),
+      }),
+    )
+    .query(async ({ctx, input}) => {
+      return ctx.db.quest.findMany({
+        where: {worldId: input.worldId},
       });
-
-      // return createdQuest;
+    }),
+  getSelectedQuest: publicProcedure
+    .input(
+      z.object({
+        worldId: z.string(),
+        questId: z.string(),
+      }),
+    )
+    .query(async ({ctx, input}) => {
+      return ctx.db.quest.findFirst({
+        where: {
+          worldId: input.worldId,
+          id: input.questId,
+        },
+      });
     }),
 });

@@ -26,7 +26,7 @@ const Navigator = ({worldId}: NavigatorProps) => {
       )}
       {!pathname.includes('quests') && (
         <Link href={`/world/${worldId}/quests`}>
-          <Button>{'Edytuj zadania'}</Button>
+          <Button>{'Edytuj misje'}</Button>
         </Link>
       )}
     </div>

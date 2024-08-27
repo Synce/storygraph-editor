@@ -54,7 +54,6 @@ const mxGraphModelSchema = z.object({
 
 export const questSchema = z.object({
   mxGraphModel: mxGraphModelSchema,
-  fileName: z.string(),
 });
 
 export type QuestSchema = z.infer<typeof questSchema>;
