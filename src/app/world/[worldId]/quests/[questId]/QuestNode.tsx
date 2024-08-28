@@ -18,9 +18,7 @@ const QuestNode = ({
     <div className="before:line-h-1 before:absolute before:-top-2 before:left-1/2 before:z-50 before:h-5 before:w-10 before:-translate-x-1/2 before:rounded-md before:border-2 before:border-solid before:border-gray-600 before:bg-gray-500 before:text-xs before:text-white">
       <div
         className={`relative flex flex-col items-center justify-center overflow-hidden rounded border text-[10px] ${
-          data.Type !== 'start' && data.MainStory
-            ? 'border-4 border-[#ffd166]'
-            : 'border-1 border-black'
+          data.MainStory ? 'border-4 border-[#ffd166]' : 'border-1 border-black'
         } ${
           ['start', 'success', 'death', 'defeat', 'other_quest'].includes(
             data.Type,

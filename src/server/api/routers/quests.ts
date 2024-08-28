@@ -90,14 +90,14 @@ const determineNodeType = (cell: MxCellSchema): QuestNodeType => {
     return 'other_quest';
   }
 
-  // 'generic_production' dla 'rounded=0' bez 'ellipse'
-  if (style.includes('rounded=0') && !style.includes('ellipse')) {
-    if (style.includes('fillcolor=#ffffff') || !style.includes('fillcolor'))
-      return 'generic_production';
-    if (style.includes('fillcolor=#fff2cc')) return 'start';
+  if (
+    style.includes('rounded=0') &&
+    !style.includes('ellipse') &&
+    (style.includes('fillcolor=#ffffff') || !style.includes('fillcolor'))
+  ) {
+    return 'generic_production';
   }
 
-  // 'generic_production' dla braku 'fillcolor', 'rounded', 'ellipse'
   if (
     (!style.includes('fillcolor') &&
       (!style.includes('rounded') || !style.includes('ellipse'))) ||
@@ -229,44 +229,21 @@ export const questsRouter = createTRPCRouter({
         data: questConnections,
       });
 
-      const startNode = await ctx.db.questNode.findFirst({
-        where: {
-          type: 'start',
-          questId: createdQuest.id,
-          quest: {
-            worldId: input.worldId,
-          },
-        },
-      });
-
-      const nodeIds = createdNodes.map(node => node.id);
-
-      const allConnections = await ctx.db.questConnection.findMany({
-        where: {
-          sourceNodeId: {
-            in: nodeIds,
-          },
-          sourceNode: {
-            quest: {
-              worldId: input.worldId,
-            },
-          },
-        },
-      });
-
-      const sourceOnlyNode = findSourceOnlyNode(
-        createdNodes,
-        allConnections,
-        createdQuest.id,
-      );
-
-      if (sourceOnlyNode && startNode) {
-        await ctx.db.questConnection.create({
-          data: {
-            sourceNodeId: startNode.id,
-            destinationId: sourceOnlyNode.originalId,
+      if (mainStoryCell) {
+        const nodeToDelete = await ctx.db.questNode.findFirst({
+          where: {
+            originalId: mainStoryCell._attributes.id,
+            questId: createdQuest.id,
           },
         });
+
+        if (nodeToDelete) {
+          await ctx.db.questNode.delete({
+            where: {
+              id: nodeToDelete.id,
+            },
+          });
+        }
       }
     }),
   getQuests: publicProcedure
