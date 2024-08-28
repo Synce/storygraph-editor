@@ -52,10 +52,19 @@ const mxGraphModelSchema = z.object({
   root: rootSchema,
 });
 
+export const nodeEditSchema = z.object({
+  Id: z.number().int(),
+  OriginalId: z.string(),
+  ProductionName: z.string().optional(),
+  ProductionArguments: z.string().optional(),
+  Type: z.string(),
+  MainStory: z.boolean(),
+});
+
 export const questSchema = z.object({
   mxGraphModel: mxGraphModelSchema,
 });
 
 export type QuestSchema = z.infer<typeof questSchema>;
-
 export type MxCellSchema = z.infer<typeof mxCellSchema>;
+export type NodeEditSchema = z.infer<typeof nodeEditSchema>;

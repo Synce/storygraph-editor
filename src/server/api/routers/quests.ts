@@ -13,6 +13,19 @@ import {z} from 'zod';
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
 import {type MxCellSchema, questSchema} from '@schemas/questSchema';
 
+type Node = {
+  id: string;
+  type: string;
+  data: {
+    Id: number;
+    OriginalId: string;
+    ProductionName: string | null;
+    ProductionArguments: string | null;
+    MainStory: boolean;
+    Type: string;
+  };
+};
+
 const findSourceOnlyNode = (
   nodes: QuestNode[],
   connections: any[],
@@ -267,19 +280,60 @@ export const questsRouter = createTRPCRouter({
         where: {worldId: input.worldId},
       });
     }),
-  getSelectedQuest: publicProcedure
+  getSelectedQuestMap: publicProcedure
     .input(
       z.object({
-        worldId: z.string(),
         questId: z.string(),
       }),
     )
     .query(async ({ctx, input}) => {
-      return ctx.db.quest.findFirst({
+      const questNodes: QuestNode[] = await ctx.db.questNode.findMany({
         where: {
-          worldId: input.worldId,
-          id: input.questId,
+          questId: input.questId,
         },
       });
+
+      const nodes: Node[] = questNodes.map(node => ({
+        id: node.originalId,
+        type: node.type,
+        data: {
+          Id: node.id,
+          OriginalId: node.originalId,
+          ProductionName: node.productionName,
+          ProductionArguments: node.productionArguments,
+          MainStory: node.isMainStory,
+          Type: node.type,
+        },
+      }));
+
+      const connections = await ctx.db.questConnection.findMany({
+        where: {
+          sourceNodeId: {
+            in: nodes.map(node => node.data.Id),
+          },
+        },
+      });
+
+      const edges = connections.map(connection => {
+        const sourceNode = nodes.find(
+          node => node.data.Id === connection.sourceNodeId,
+        );
+        const destinationNode = nodes.find(
+          node => node.data.OriginalId === connection.destinationId,
+        );
+
+        return {
+          id:
+            `${sourceNode?.data.OriginalId}-${destinationNode?.data.OriginalId}` ??
+            '',
+          source: sourceNode?.data.OriginalId ?? '',
+          target: destinationNode?.data.OriginalId ?? '',
+        };
+      });
+
+      return {
+        nodes,
+        edges,
+      };
     }),
 });

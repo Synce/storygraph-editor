@@ -1,14 +1,16 @@
+import RootMap from './RootMap';
+
 type ShowQuestPageProps = {
   params: {
     worldId: string;
-    Id: string;
+    questId: string;
   };
 };
 
-const ShowQuestPage = ({params: {worldId, Id}}: ShowQuestPageProps) => {
+const ShowQuestPage = ({params: {worldId, questId}}: ShowQuestPageProps) => {
   return (
     <div className="flex  w-full grow flex-col bg-slate-700">
-      {worldId} {Id}
+      <RootMap worldId={worldId} questId={questId} />
     </div>
   );
 };

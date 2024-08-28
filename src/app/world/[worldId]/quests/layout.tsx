@@ -5,6 +5,8 @@ import CopyWorldIdButton from '@components/CopyWorldIdButton';
 import Navigator from '@components/Navigator';
 import {Button} from '@components/ui/Button';
 
+import QuestSelect from './QuestSelect';
+
 type QuestEditLayoutProps = {
   children: React.ReactNode;
   params: {
@@ -24,6 +26,7 @@ const QuestEditLayout = async ({children, params}: QuestEditLayoutProps) => {
             <CopyWorldIdButton Id={world.Id} />
           </div>
           <Navigator worldId={world.Id} />
+          <QuestSelect worldId={world.Id} />
           <Link href={`/world/${world.Id}/quests/load`}>
             <Button>{'Załaduj misje'}</Button>
           </Link>
