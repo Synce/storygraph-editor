@@ -10,7 +10,7 @@ type NodeCreateProps = {
 const NodeCreate = ({params: {worldId, questId}}: NodeCreateProps) => {
   return (
     <div className="flex  w-full grow flex-col bg-slate-700">
-      <NodeForm worldId={worldId} questId={questId} edit={false} />
+      <NodeForm worldId={worldId} questId={questId} />
     </div>
   );
 };

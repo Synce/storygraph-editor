@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable import/no-unused-modules */
-import {type QuestNode, type QuestNodeType} from '@prisma/client';
+import {type QuestNode, QuestNodeType} from '@prisma/client';
 import {z} from 'zod';
 
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
@@ -24,44 +24,6 @@ type Node = {
     MainStory: boolean;
     Type: string;
   };
-};
-
-const findSourceOnlyNode = (
-  nodes: QuestNode[],
-  connections: any[],
-  questId: string,
-): QuestNode | null => {
-  // Ograniczamy przeszukiwanie tylko do węzłów i połączeń związanych z podanym questId
-  const relevantNodes = nodes.filter(node => node.questId === questId);
-  const relevantConnections = connections.filter(connection => {
-    const sourceNode = relevantNodes.find(
-      node => node.id === connection.sourceNodeId,
-    );
-    return !!sourceNode;
-  });
-
-  // Zbierz wszystkie sourceNodeId z odpowiednich połączeń
-  const sourceNodeIds = new Set(
-    relevantConnections.map(conn => conn.sourceNodeId),
-  );
-
-  // Zbierz wszystkie originalId z odpowiednich połączeń (destinationId odnosi się do originalId)
-  const targetNodeIds = new Set(
-    relevantConnections.map(conn => {
-      const originalId = conn.destinationId;
-      return relevantNodes.find(node => node.originalId === originalId)?.id;
-    }),
-  );
-
-  // Znajdź nodeId, które jest w sourceNodeIds, ale nie ma go w targetNodeIds
-  const sourceOnlyNodeId = Array.from(sourceNodeIds).find(
-    id => !targetNodeIds.has(id),
-  );
-
-  // Zwróć węzeł, który spełnia warunki, lub null jeśli taki nie istnieje
-  return sourceOnlyNodeId
-    ? relevantNodes.find(node => node.id === sourceOnlyNodeId) ?? null
-    : null;
 };
 
 const determineNodeType = (cell: MxCellSchema): QuestNodeType => {
@@ -312,5 +274,44 @@ export const questsRouter = createTRPCRouter({
         nodes,
         edges,
       };
+    }),
+  getNode: publicProcedure
+    .input(
+      z.object({
+        worldId: z.string(),
+        questId: z.string(),
+        nodeId: z.string(),
+      }),
+    )
+    .query(async ({ctx, input}) => {
+      return ctx.db.questNode.findFirstOrThrow({
+        where: {
+          originalId: input.nodeId,
+          questId: input.questId,
+          quest: {
+            worldId: input.worldId,
+          },
+        },
+      });
+    }),
+  getQuestNodeTypes: publicProcedure.query(() => {
+    return Object.values(QuestNodeType);
+  }),
+  deleteQuest: publicProcedure
+    .input(
+      z.object({
+        worldId: z.string(),
+        questId: z.string(),
+      }),
+    )
+    .mutation(async ({ctx, input}) => {
+      const deletedQuest = await ctx.db.quest.deleteMany({
+        where: {
+          id: input.questId,
+          worldId: input.worldId,
+        },
+      });
+
+      return {count: deletedQuest.count};
     }),
 });

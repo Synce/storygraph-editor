@@ -93,12 +93,12 @@ model Production {
 }
 
 model Quest {
-  id         String      @id @unique @default(uuid())
-  name       String
-  questNodes QuestNode[]
-
-  World   World  @relation(fields: [worldId], references: [Id])
-  worldId String
+  id               String            @id @unique @default(uuid())
+  name             String
+  questNodes       QuestNode[]
+  questConnections QuestConnection[]
+  World            World             @relation(fields: [worldId], references: [Id])
+  worldId          String
 }
 
 model QuestNode {
@@ -111,7 +111,7 @@ model QuestNode {
   isMainStory         Boolean
   connections         QuestConnection[]
 
-  quest Quest @relation(fields: [questId], references: [id])
+  quest Quest @relation(fields: [questId], references: [id], onDelete: Cascade)
 }
 
 model QuestConnection {
@@ -119,7 +119,9 @@ model QuestConnection {
   sourceNodeId  Int
   destinationId String
 
-  sourceNode QuestNode @relation(fields: [sourceNodeId], references: [id])
+  sourceNode QuestNode @relation(fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  Quest      Quest?    @relation(fields: [questId], references: [id])
+  questId    String?
 }
 
 enum QuestNodeType {

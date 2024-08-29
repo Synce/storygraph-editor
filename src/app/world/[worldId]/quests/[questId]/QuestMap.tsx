@@ -2,6 +2,7 @@
 
 import {instance} from '@viz-js/viz';
 import Link from 'next/link';
+import {useRouter} from 'next/navigation';
 import {useEffect, useState} from 'react';
 import ReactFlow, {
   Background,
@@ -17,6 +18,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 
 import {type GraphvizJson} from '@/interfaces/IGraphViz';
+import {api} from '@/trpc/react';
 import {type RouterOutputs} from '@/trpc/shared';
 import {Button} from '@components/ui/Button';
 import {cn} from '@utils/cn';
@@ -58,6 +60,8 @@ const QuestMap = ({
 
   const [loaded, setLoaded] = useState(false);
 
+  const router = useRouter();
+
   useEffect(() => {
     if (initialNodes.length === 0) return;
     const dotString = convertToDot(initialNodes, initialEdges);
@@ -85,6 +89,22 @@ const QuestMap = ({
     if (loaded) setTimeout(() => fitView({duration: 300}), 1000);
   }, [fitView, loaded]);
 
+  const deleteQuestMutation = api.quests.deleteQuest.useMutation({
+    onSuccess: () => {
+      router.push(`/world/${worldId}/quests`);
+    },
+    onError: error => {
+      console.error('Failed to delete quest:', error);
+    },
+  });
+
+  const handleDeleteQuest = () => {
+    // eslint-disable-next-line no-alert, no-restricted-globals
+    if (confirm('Czy na pewno chcesz usunąć tę misję?')) {
+      deleteQuestMutation.mutate({worldId, questId});
+    }
+  };
+
   return (
     <>
       {initialNodes.length === 0 && (
@@ -102,6 +122,11 @@ const QuestMap = ({
           href={`/world/${worldId}/quests/${questId}/create`}>
           <Button>{'Dodaj Produkcję'}</Button>
         </Link>
+        <Button
+          className="absolute right-0 z-10 bg-red-500"
+          onClick={handleDeleteQuest}>
+          {'Usuń misję'}
+        </Button>
 
         <ReactFlow
           nodeTypes={nodeTypes}
