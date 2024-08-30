@@ -23,7 +23,6 @@ const EditNodePage = async ({
       <NodeForm
         worldId={worldId}
         questId={questId}
-        nodeId={nodeId}
         productionNames={productionNames}
         node={node}
         nodeTypes={nodeTypes}

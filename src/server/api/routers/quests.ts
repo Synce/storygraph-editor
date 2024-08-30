@@ -8,10 +8,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable import/no-unused-modules */
 import {type QuestNode, QuestNodeType} from '@prisma/client';
+import {v4 as uuidv4} from 'uuid';
 import {z} from 'zod';
 
 import {createTRPCRouter, publicProcedure} from '@/server/api/trpc';
-import {type MxCellSchema, questSchema} from '@schemas/questSchema';
+import {
+  type MxCellSchema,
+  nodeEditSchema,
+  questSchema,
+} from '@schemas/questSchema';
 
 type Node = {
   id: string;
@@ -182,9 +187,13 @@ export const questsRouter = createTRPCRouter({
         .filter(cell => cell._attributes.edge === '1')
         .map(cell => ({
           sourceNodeId: getNodeId(cell._attributes.source ?? '', createdNodes),
-          destinationId: cell._attributes.target,
+          destinationId: getNodeId(cell._attributes.target ?? '', createdNodes), // Poprawiono typ destinationId na Int
         }))
-        .filter(connection => connection.sourceNodeId !== null);
+        .filter(
+          connection =>
+            connection.sourceNodeId !== null &&
+            connection.destinationId !== null,
+        );
 
       await ctx.db.questConnection.createMany({
         // @ts-expect-error typing error
@@ -258,7 +267,7 @@ export const questsRouter = createTRPCRouter({
           node => node.data.Id === connection.sourceNodeId,
         );
         const destinationNode = nodes.find(
-          node => node.data.OriginalId === connection.destinationId,
+          node => node.data.Id === connection.destinationId, // Poprawiono typ destinationId na Int
         );
 
         return {
@@ -313,5 +322,99 @@ export const questsRouter = createTRPCRouter({
       });
 
       return {count: deletedQuest.count};
+    }),
+  editNode: publicProcedure
+    .input(
+      z.object({
+        worldId: z.string(),
+        questId: z.string(),
+        node: nodeEditSchema,
+      }),
+    )
+    .mutation(async ({ctx, input}) => {
+      const {Id, ...data} = input.node;
+      return ctx.db.questNode.update({
+        where: {
+          id: Id,
+          questId: input.questId,
+          quest: {
+            worldId: input.worldId,
+          },
+        },
+        data: {
+          type: data.Type as QuestNodeType,
+          productionName: data.ProductionName,
+          productionArguments: data.ProductionArguments,
+          isMainStory: data.MainStory,
+        },
+      });
+    }),
+  deleteNode: publicProcedure
+    .input(
+      z.object({
+        nodeId: z.number(),
+        questId: z.string(),
+        worldId: z.string(),
+      }),
+    )
+    .mutation(async ({ctx, input}) => {
+      const {nodeId, questId, worldId} = input;
+
+      const node = await ctx.db.questNode.findFirst({
+        where: {
+          id: nodeId,
+          questId,
+          quest: {
+            worldId,
+          },
+        },
+      });
+
+      if (!node) {
+        throw new Error(
+          'Węzeł nie został znaleziony lub nie należy do podanego świata/zadania.',
+        );
+      }
+
+      await ctx.db.questNode.delete({
+        where: {
+          id: nodeId,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Węzeł został pomyślnie usunięty.',
+      };
+    }),
+  createNode: publicProcedure
+    .input(
+      z.object({
+        worldId: z.string(),
+        questId: z.string(),
+        node: nodeEditSchema,
+      }),
+    )
+    .mutation(async ({ctx, input}) => {
+      const {questId, node} = input;
+
+      const generatedOriginalId = uuidv4();
+
+      const createdNode = await ctx.db.questNode.create({
+        data: {
+          originalId: generatedOriginalId,
+          type: node.Type as QuestNodeType,
+          productionName: node.ProductionName ?? '',
+          productionArguments: node.ProductionArguments ?? '',
+          questId,
+          isMainStory: node.MainStory ?? false,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Węzeł został pomyślnie utworzony.',
+        node: createdNode,
+      };
     }),
 });

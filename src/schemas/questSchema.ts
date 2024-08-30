@@ -53,12 +53,12 @@ const mxGraphModelSchema = z.object({
 });
 
 export const nodeEditSchema = z.object({
-  Id: z.number().int(),
-  OriginalId: z.string(),
+  Id: z.number().int().optional(),
+  OriginalId: z.string().optional(),
   ProductionName: z.string().optional(),
   ProductionArguments: z.string().optional(),
   Type: z.string(),
-  MainStory: z.boolean(),
+  MainStory: z.boolean().optional(),
 });
 
 export const questSchema = z.object({
