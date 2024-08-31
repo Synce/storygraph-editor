@@ -1,6 +1,15 @@
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import {Handle, Position, type NodeProps} from 'reactflow';
+import {
+  Handle,
+  Position,
+  useStore,
+  type NodeProps,
+  type ReactFlowState,
+} from 'reactflow';
+
+const connectionNodeIdSelector = (state: ReactFlowState) =>
+  state.connectionNodeId;
 
 const QuestNode = ({
   data,
@@ -12,6 +21,11 @@ const QuestNode = ({
   MainStory: boolean;
   Type: string;
 }>) => {
+  const connectionNodeId = useStore(connectionNodeIdSelector);
+
+  const isConnecting = !!connectionNodeId;
+  const isTarget = connectionNodeId && connectionNodeId !== data.OriginalId;
+
   const pathname = usePathname();
 
   return (
@@ -28,9 +42,11 @@ const QuestNode = ({
         }`}
         style={{
           backgroundColor: (() => {
+            if (isTarget) {
+              return '#5e81ac';
+            }
+
             switch (data.Type) {
-              case 'start':
-                return '#5e81ac';
               case 'success':
                 return '#fff2cc';
               case 'death':
@@ -46,10 +62,21 @@ const QuestNode = ({
                 return '#8b0000';
             }
           })(),
-          borderStyle: 'solid',
+          borderStyle: isTarget ? 'dashed' : 'solid',
         }}>
-        <Handle position={Position.Bottom} type="target" />
-        <Handle position={Position.Top} type="source" />
+        {!isConnecting && (
+          <Handle
+            position={Position.Top}
+            type="source"
+            className="!absolute !left-0 !top-0 !h-full !w-full !translate-y-0 !rounded-none border-none opacity-0"
+          />
+        )}
+        <Handle
+          position={Position.Bottom}
+          type="target"
+          className="!absolute !left-0 !top-0 z-10 !h-full !w-full !translate-y-0 !rounded-none border-none opacity-0"
+          isConnectableStart={false}
+        />
         <p className="mx-2 line-clamp-2 text-center text-black">
           {data.ProductionName}
         </p>

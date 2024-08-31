@@ -1,13 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 'use client';
 
 import {instance} from '@viz-js/viz';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
-import {useEffect, useState} from 'react';
+import {useEffect, useState, useCallback} from 'react';
 import ReactFlow, {
   Background,
   Controls,
   type Edge,
+  type OnEdgesChange,
+  type OnConnect,
+  addEdge,
+  applyEdgeChanges,
   MarkerType,
   MiniMap,
   useEdgesState,
@@ -21,9 +28,12 @@ import {type GraphvizJson} from '@/interfaces/IGraphViz';
 import {api} from '@/trpc/react';
 import {type RouterOutputs} from '@/trpc/shared';
 import {Button} from '@components/ui/Button';
+import {useToast} from '@hooks/useToast';
 import {cn} from '@utils/cn';
 import {convertToDot, graphvizToReactFlow} from '@utils/misc';
 
+import CustomConnectionLine from './CustomConnectionLine';
+import {MarkerDefinition} from './MarkerDefinition';
 import QuestNode from './QuestNode';
 
 type NodeData = NonNullable<
@@ -40,13 +50,18 @@ type QuestMapProps = {
 const nodeTypes = {customNode: QuestNode};
 
 const defaultEdgeOptions = {
-  style: {strokeWidth: 3, stroke: 'gray'},
-  deletable: false,
-  focusable: false,
+  style: {strokeWidth: 3, stroke: 'grey'},
+  deletable: true,
+  focusable: true,
   markerEnd: {
     type: MarkerType.Arrow,
   },
   type: 'straight',
+};
+
+const connectionLineStyle = {
+  strokeWidth: 3,
+  stroke: 'red',
 };
 
 const QuestMap = ({
@@ -56,11 +71,13 @@ const QuestMap = ({
   edges: initialEdges,
 }: QuestMapProps) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges] = useEdgesState([]);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
 
   const [loaded, setLoaded] = useState(false);
 
   const router = useRouter();
+  const {toast} = useToast();
 
   useEffect(() => {
     if (initialNodes.length === 0) return;
@@ -105,6 +122,107 @@ const QuestMap = ({
     }
   };
 
+  const addConnection = api.quests.addConnection.useMutation({
+    onError: err => {
+      toast({
+        title: 'Error',
+        description: err.shape?.message,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Sukces',
+        description: 'Połączono',
+      });
+    },
+  });
+  const removeConnection = api.quests.removeConnection.useMutation({
+    onError: err => {
+      toast({
+        title: 'Error',
+        description: err.shape?.message,
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Sukces',
+        description: 'Usunięto połączenie',
+      });
+    },
+  });
+
+  const onEdgesChange: OnEdgesChange = useCallback(
+    changes => {
+      changes.forEach(change => {
+        if (change.type === 'remove') {
+          const edge = edges.find(edge => edge.id === change.id);
+          if (!edge) return;
+
+          const sourceNode = nodes.find(
+            node => node.data.OriginalId === edge.source,
+          );
+          const targetNode = nodes.find(
+            node => node.data.OriginalId === edge.target,
+          );
+
+          if (!sourceNode || !targetNode) return;
+
+          removeConnection.mutate(
+            {
+              questId,
+              sourceId: sourceNode.data.Id,
+              targetId: targetNode.data.Id,
+            },
+            {
+              onError: error => {
+                console.error('Failed to remove connection:', error);
+              },
+            },
+          );
+        }
+      });
+
+      setEdges(eds => applyEdgeChanges(changes, eds));
+    },
+    [edges, removeConnection, setEdges, nodes, questId],
+  );
+
+  const onConnect: OnConnect = useCallback(
+    connection => {
+      if (connection.source === connection.target) return;
+      if (!connection.source || !connection.target) return;
+
+      const sourceNode = nodes.find(
+        node => node.data.OriginalId === connection.source,
+      );
+      const targetNode = nodes.find(
+        node => node.data.OriginalId === connection.target,
+      );
+
+      if (!sourceNode || !targetNode) return;
+
+      void addConnection
+        .mutateAsync({
+          questId,
+          sourceId: sourceNode.data.Id,
+          targetId: targetNode.data.Id,
+        })
+        .then(() => {
+          setEdges(eds => addEdge(connection, eds));
+        });
+    },
+    [addConnection, setEdges, questId, nodes],
+  );
+
+  const onEdgeClick = (event: React.MouseEvent, edge: Edge) => {
+    setSelectedEdgeId(prevId => (prevId === edge.id ? null : edge.id));
+    event.stopPropagation();
+  };
+
+  const onPaneClick = () => {
+    setSelectedEdgeId(null);
+  };
+
   return (
     <>
       {initialNodes.length === 0 && (
@@ -131,7 +249,6 @@ const QuestMap = ({
           'relative flex w-full grow',
           !loaded && 'pointer-events-none opacity-0',
         )}>
-        {/* Te przyciski będą teraz zawsze widoczne */}
         <Link
           className="absolute left-4 top-4 z-50"
           href={`/world/${worldId}/quests/${questId}/create`}>
@@ -147,15 +264,25 @@ const QuestMap = ({
         <ReactFlow
           nodeTypes={nodeTypes}
           nodes={nodes}
-          edges={edges}
+          edges={edges.map(edge => ({
+            ...edge,
+            style: {
+              stroke: edge.id === selectedEdgeId ? 'red' : 'grey',
+              strokeWidth: 3,
+            },
+          }))}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onEdgeClick={onEdgeClick}
+          onPaneClick={onPaneClick}
           defaultEdgeOptions={defaultEdgeOptions}
-          nodesConnectable={false}
-          edgesFocusable={false}
-          edgesUpdatable={false}
+          onConnect={onConnect}
           maxZoom={10}
-          minZoom={0.00001}>
+          minZoom={0.00001}
+          connectionLineComponent={CustomConnectionLine}
+          connectionLineStyle={connectionLineStyle}>
+          <MarkerDefinition color="gray" id="edge-marker-gray" />
+          <MarkerDefinition color="#ef4444" id="edge-marker-red" />
           <Background />
           <Controls />
           <MiniMap zoomable pannable />

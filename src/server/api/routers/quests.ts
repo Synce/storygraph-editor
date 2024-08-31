@@ -187,7 +187,8 @@ export const questsRouter = createTRPCRouter({
         .filter(cell => cell._attributes.edge === '1')
         .map(cell => ({
           sourceNodeId: getNodeId(cell._attributes.source ?? '', createdNodes),
-          destinationId: getNodeId(cell._attributes.target ?? '', createdNodes), // Poprawiono typ destinationId na Int
+          destinationId: getNodeId(cell._attributes.target ?? '', createdNodes),
+          questId: createdQuest.id,
         }))
         .filter(
           connection =>
@@ -267,7 +268,7 @@ export const questsRouter = createTRPCRouter({
           node => node.data.Id === connection.sourceNodeId,
         );
         const destinationNode = nodes.find(
-          node => node.data.Id === connection.destinationId, // Poprawiono typ destinationId na Int
+          node => node.data.Id === connection.destinationId,
         );
 
         return {
@@ -438,6 +439,72 @@ export const questsRouter = createTRPCRouter({
         success: true,
         message: 'Misja została pomyślnie utworzona.',
         quest: newQuest,
+      };
+    }),
+  addConnection: publicProcedure
+    .input(
+      z.object({
+        questId: z.string(),
+        sourceId: z.number(),
+        targetId: z.number(),
+      }),
+    )
+    .mutation(async ({ctx, input}) => {
+      const {questId, sourceId, targetId} = input;
+
+      const existingConnection = await ctx.db.questConnection.findFirst({
+        where: {
+          questId,
+          sourceNodeId: sourceId,
+          destinationId: targetId,
+        },
+      });
+
+      if (existingConnection) {
+        throw new Error('Połączenie już istnieje');
+      }
+
+      const newConnection = await ctx.db.questConnection.create({
+        data: {
+          sourceNodeId: sourceId,
+          destinationId: targetId,
+          questId,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Połączenie zostało pomyślnie dodane.',
+        connection: newConnection,
+      };
+    }),
+  removeConnection: publicProcedure
+    .input(
+      z.object({
+        questId: z.string(),
+        sourceId: z.number(),
+        targetId: z.number(),
+      }),
+    )
+    .mutation(async ({ctx, input}) => {
+      const {questId, sourceId, targetId} = input;
+
+      const deletedConnection = await ctx.db.questConnection.deleteMany({
+        where: {
+          questId,
+          sourceNodeId: sourceId,
+          destinationId: targetId,
+        },
+      });
+
+      if (deletedConnection.count === 0) {
+        throw new Error('Nie znaleziono połączenia do usunięcia');
+      }
+
+      return {
+        success: true,
+        message: 'Połączenie zostało pomyślnie usunięte.',
+        deletedCount: deletedConnection.count,
       };
     }),
 });
