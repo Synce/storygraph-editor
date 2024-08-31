@@ -186,7 +186,7 @@ const NodeForm = ({
       });
     },
     onSuccess: () => {
-      router.back();
+      router.push(`/world/${worldId}/quests/${questId}`);
       toast({
         title: 'Sukces',
         description: 'zapisano',

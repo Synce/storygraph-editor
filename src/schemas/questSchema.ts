@@ -65,6 +65,12 @@ export const questSchema = z.object({
   mxGraphModel: mxGraphModelSchema,
 });
 
+export const createQuestSchema = z.object({
+  worldId: z.string(),
+  questName: z.string().min(1, 'Nazwa misji jest wymagana'),
+});
+
 export type QuestSchema = z.infer<typeof questSchema>;
 export type MxCellSchema = z.infer<typeof mxCellSchema>;
 export type NodeEditSchema = z.infer<typeof nodeEditSchema>;
+export type CreateQuestSchema = z.infer<typeof createQuestSchema>;

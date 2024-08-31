@@ -28,7 +28,10 @@ const QuestEditLayout = async ({children, params}: QuestEditLayoutProps) => {
           <Navigator worldId={world.Id} />
           <QuestSelect worldId={world.Id} />
           <Link href={`/world/${world.Id}/quests/load`}>
-            <Button>{'Załaduj misje'}</Button>
+            <Button>{'Załaduj misję'}</Button>
+          </Link>
+          <Link href={`/world/${world.Id}/quests/create`}>
+            <Button>{'Utwórz nową misję'}</Button>
           </Link>
         </div>
       </div>

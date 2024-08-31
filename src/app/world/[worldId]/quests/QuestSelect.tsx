@@ -27,7 +27,7 @@ const QuestSelect = ({worldId}: QuestSelectProps) => {
           router.push(`/world/${worldId}/quests/${value}`);
         }}>
         <SelectTrigger className="text-body  box-border rounded-lg bg-white px-4 py-3">
-          <SelectValue placeholder="Wybierz misje" />
+          <SelectValue placeholder="Wybierz misję" />
         </SelectTrigger>
         <SelectContent>
           {data?.map(quest => (

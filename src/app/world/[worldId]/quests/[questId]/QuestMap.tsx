@@ -108,22 +108,38 @@ const QuestMap = ({
   return (
     <>
       {initialNodes.length === 0 && (
-        <h2 className="absolute left-1/2 top-1/2 z-50 text-2xl text-red-500">
-          {'Brak produkcji dla tej misji'}
-        </h2>
+        <>
+          <h2 className="absolute left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 transform text-2xl text-red-500">
+            {'Brak produkcji dla tej misji'}
+          </h2>
+
+          <Link
+            className="z-60 top-100 absolute"
+            href={`/world/${worldId}/quests/${questId}/create`}>
+            <Button>{'Dodaj Produkcję'}</Button>
+          </Link>
+
+          <Button
+            className="z-60 top-100 absolute right-0 bg-red-500"
+            onClick={handleDeleteQuest}>
+            {'Usuń misję'}
+          </Button>
+        </>
       )}
       <div
         className={cn(
           'relative flex w-full grow',
-          !loaded && 'pointer-events-none opacity-0 ',
+          !loaded && 'pointer-events-none opacity-0',
         )}>
+        {/* Te przyciski będą teraz zawsze widoczne */}
         <Link
-          className="absolute z-10"
+          className="absolute left-4 top-4 z-50"
           href={`/world/${worldId}/quests/${questId}/create`}>
           <Button>{'Dodaj Produkcję'}</Button>
         </Link>
+
         <Button
-          className="absolute right-0 z-10 bg-red-500"
+          className="absolute right-4 top-4 z-50 bg-red-500"
           onClick={handleDeleteQuest}>
           {'Usuń misję'}
         </Button>
@@ -144,7 +160,7 @@ const QuestMap = ({
           <Controls />
           <MiniMap zoomable pannable />
         </ReactFlow>
-      </div>{' '}
+      </div>
     </>
   );
 };

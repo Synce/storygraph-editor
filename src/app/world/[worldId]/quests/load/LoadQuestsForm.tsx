@@ -63,7 +63,7 @@ const LoadQuestsForm = ({worldId}: LoadQuestsFormProps) => {
 
   return (
     <div className="flex  flex-col gap-8  rounded-lg border border-slate-200 bg-slate-700 p-10 ">
-      <h1 className="text-center text-xl font-bold">{'Załaduj misje'}</h1>
+      <h1 className="text-center text-xl font-bold">{'Załaduj misję'}</h1>
 
       <div className="flex flex-col gap-4">
         <h2 className="font-bold">{'Prześlij plik'}</h2>

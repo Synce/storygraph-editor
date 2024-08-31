@@ -417,4 +417,27 @@ export const questsRouter = createTRPCRouter({
         node: createdNode,
       };
     }),
+  createQuest: publicProcedure
+    .input(
+      z.object({
+        worldId: z.string(),
+        questName: z.string().min(1, 'Nazwa misji jest wymagana'),
+      }),
+    )
+    .mutation(async ({ctx, input}) => {
+      const {worldId, questName} = input;
+
+      const newQuest = await ctx.db.quest.create({
+        data: {
+          name: questName,
+          worldId,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Misja została pomyślnie utworzona.',
+        quest: newQuest,
+      };
+    }),
 });
