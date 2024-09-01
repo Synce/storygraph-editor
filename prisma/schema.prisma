@@ -64,6 +64,7 @@ model World {
 
   WorldNodes  WorldNode[]
   Productions Production[]
+  Quests      Quest[]
 }
 
 enum WorldNodeType {
@@ -89,4 +90,49 @@ model Production {
   worldId String
 
   @@unique([worldId, Title])
+}
+
+model Quest {
+  id               String            @id @unique @default(uuid())
+  name             String
+  questNodes       QuestNode[]
+  questConnections QuestConnection[]
+  World            World             @relation(fields: [worldId], references: [Id])
+  worldId          String
+}
+
+model QuestNode {
+  id                     Int               @id @default(autoincrement())
+  originalId             String
+  type                   QuestNodeType
+  productionName         String?
+  productionArguments    String?
+  questId                String
+  isMainStory            Boolean
+  sourceConnections      QuestConnection[] @relation("SourceNode")
+  destinationConnections QuestConnection[] @relation("DestinationNode")
+
+  quest Quest @relation(fields: [questId], references: [id], onDelete: Cascade)
+}
+
+model QuestConnection {
+  id            String @id @unique @default(uuid())
+  sourceNodeId  Int
+  destinationId Int
+
+  sourceNode      QuestNode @relation("SourceNode", fields: [sourceNodeId], references: [id], onDelete: Cascade)
+  destinationNode QuestNode @relation("DestinationNode", fields: [destinationId], references: [id], onDelete: Cascade)
+
+  Quest   Quest?  @relation(fields: [questId], references: [id])
+  questId String?
+}
+
+enum QuestNodeType {
+  success
+  death
+  defeat
+  generic_production
+  custom_production
+  other_quest
+  unknown
 }

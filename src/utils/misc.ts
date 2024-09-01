@@ -77,27 +77,29 @@ export const convertToDot = (
 };
 
 export const graphvizToReactFlow = (json: GraphvizJson) => {
-  const nodes = json.objects.map(node => {
-    const [x, y] = node.pos.split(',').map(Number);
-    const width = parseFloat(node.width) * 72;
-    const height = parseFloat(node.height) * 72;
-    return {
-      id: node.name,
-      type: 'customNode',
-      data: JSON.parse(node.data) as {
-        Name: string;
-        Id: string;
-        Type: WorldNodeType;
-      },
-      position: {x: x! - width / 2, y: y! - height / 2},
-    };
-  });
+  const nodes =
+    json.objects?.map(node => {
+      const [x, y] = node.pos.split(',').map(Number);
+      const width = parseFloat(node.width) * 72;
+      const height = parseFloat(node.height) * 72;
+      return {
+        id: node.name,
+        type: 'customNode',
+        data: JSON.parse(node.data) as {
+          Name: string;
+          Id: string;
+          Type: WorldNodeType;
+        },
+        position: {x: x! - width / 2, y: y! - height / 2},
+      };
+    }) || [];
 
-  const edges = json.edges.map(edge => ({
-    id: `e${edge.tail}-${edge.head}`,
-    source: json.objects[edge.tail]!.name,
-    target: json.objects[edge.head]!.name,
-  }));
+  const edges =
+    json.edges?.map(edge => ({
+      id: `e${edge.tail}-${edge.head}`,
+      source: json.objects[edge.tail]!.name,
+      target: json.objects[edge.head]!.name,
+    })) || [];
 
   return {nodes, edges};
 };

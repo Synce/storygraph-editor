@@ -4,6 +4,7 @@ import {worldRouter} from '@/server/api/routers/world';
 import {createTRPCRouter} from '@/server/api/trpc';
 
 import {productionsRouter} from './routers/productions';
+import {questsRouter} from './routers/quests';
 import {worldExportRouter} from './routers/worldExport';
 import {worldLoaderRouter} from './routers/worldLoader';
 import {worldMapRouter} from './routers/worldMap';
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   worldMap: worldMapRouter,
   worldExport: worldExportRouter,
   productions: productionsRouter,
+  quests: questsRouter,
 });
 
 // export type definition of API
