@@ -51,7 +51,9 @@ const LoadQuestsForm = ({worldId}: LoadQuestsFormProps) => {
         return;
       }
 
-      loadQuest.mutate({worldId, quest, fileName: file.name});
+      const fileNameWithoutExtension = file.name.replace(/\.drawio$/, '');
+
+      loadQuest.mutate({worldId, quest, fileName: fileNameWithoutExtension});
     };
 
     reader.onerror = error => {

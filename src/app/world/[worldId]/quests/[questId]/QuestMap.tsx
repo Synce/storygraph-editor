@@ -226,23 +226,23 @@ const QuestMap = ({
   return (
     <>
       {initialNodes.length === 0 && (
-        <>
+        <div className="relative flex h-full w-full">
           <h2 className="absolute left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 transform text-2xl text-red-500">
             {'Brak produkcji dla tej misji'}
           </h2>
 
           <Link
-            className="z-60 top-100 absolute"
+            className="z-60 absolute left-5 top-5"
             href={`/world/${worldId}/quests/${questId}/create`}>
             <Button>{'Dodaj Produkcję'}</Button>
           </Link>
 
           <Button
-            className="z-60 top-100 absolute right-0 bg-red-500"
+            className="z-60 absolute right-5 top-5 bg-red-500"
             onClick={handleDeleteQuest}>
             {'Usuń misję'}
           </Button>
-        </>
+        </div>
       )}
       <div
         className={cn(
@@ -250,13 +250,13 @@ const QuestMap = ({
           !loaded && 'pointer-events-none opacity-0',
         )}>
         <Link
-          className="absolute left-4 top-4 z-50"
+          className="absolute left-5 top-5 z-50"
           href={`/world/${worldId}/quests/${questId}/create`}>
           <Button>{'Dodaj Produkcję'}</Button>
         </Link>
 
         <Button
-          className="absolute right-4 top-4 z-50 bg-red-500"
+          className="absolute right-5 top-5 z-50 bg-red-500"
           onClick={handleDeleteQuest}>
           {'Usuń misję'}
         </Button>

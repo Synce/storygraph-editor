@@ -6,7 +6,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable import/no-unused-modules */
 import {type QuestNode, QuestNodeType} from '@prisma/client';
 import {v4 as uuidv4} from 'uuid';
 import {z} from 'zod';
@@ -505,6 +504,52 @@ export const questsRouter = createTRPCRouter({
         success: true,
         message: 'Połączenie zostało pomyślnie usunięte.',
         deletedCount: deletedConnection.count,
+      };
+    }),
+  exportQuest: publicProcedure
+    .input(
+      z.object({
+        questId: z.string(),
+      }),
+    )
+    .query(async ({ctx, input}) => {
+      const {questId} = input;
+
+      const quest = await ctx.db.quest.findUnique({
+        where: {id: questId},
+        include: {
+          questNodes: true,
+          questConnections: true,
+        },
+      });
+
+      if (!quest) {
+        throw new Error('Nie znaleziono misji');
+      }
+
+      const nodes = quest.questNodes.map(node => {
+        const connectsTo = quest.questConnections
+          .filter(connection => connection.sourceNodeId === node.id)
+          .map(connection => {
+            const targetNode = quest.questNodes.find(
+              targetNode => targetNode.id === connection.destinationId,
+            );
+            return targetNode?.originalId ?? '';
+          });
+
+        return {
+          Id: node.originalId,
+          Type: node.type,
+          Title: node.productionName ?? '',
+          Value: node.productionArguments ?? '',
+          MainStory: node.isMainStory,
+          ConnectsTo: connectsTo,
+        };
+      });
+
+      return {
+        Title: quest.name,
+        Node: nodes,
       };
     }),
 });
