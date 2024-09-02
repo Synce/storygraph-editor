@@ -20,7 +20,7 @@ const QuestEditLayout = async ({children, params}: QuestEditLayoutProps) => {
   return (
     <div className="flex h-full flex-col">
       <div className="bg-slate-800 p-4">
-        <div className="flex flex-row items-center  gap-12">
+        <div className="flex flex-row items-center gap-5">
           <div className="flex flex-col  gap-2">
             <h1 className="text-xl text-white">{`Edycja: ${world.Title}`}</h1>
             <CopyWorldIdButton Id={world.Id} />
