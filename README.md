@@ -16,5 +16,3 @@ Zainstalowane:
 4. `yarn db:push`
 5. `yarn dev`
 6. Wejść na `https:localhost:3000`
-## Uwagi
-Zmiany po utworzeniu nowej misji, nowej produkcji, edytowaniu elementu nie zawsze się pojawiają automatycznie dlatego trzeba klikać klawisz `F5` lub przycisk `odśwież`.
