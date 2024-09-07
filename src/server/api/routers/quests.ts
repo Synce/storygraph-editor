@@ -99,6 +99,7 @@ const findMainStoryCell = (
 ): MxCellSchema | undefined => {
   return allCells.find(
     cell =>
+      // Sprawdza, czy styl komórki zawiera 'rounded=0' oraz 'fillColor=#fff2cc'
       cell._attributes.style?.includes('rounded=0') &&
       cell._attributes.style?.includes('fillColor=#fff2cc'),
   );
@@ -108,16 +109,19 @@ const isMainStory = (
   cell: MxCellSchema,
   mainStoryCell: MxCellSchema,
 ): boolean => {
+  // Wyodrębnia atrybuty geometrii komórki
   const cellGeometry = cell.mxGeometry?._attributes;
   const cellX = parseFloat(cellGeometry?.x ?? '0');
   const cellY = parseFloat(cellGeometry?.y ?? '0');
 
+  // Wyodrębnia atrybuty geometrii komórki głównej historii
   const mainStoryGeometry = mainStoryCell.mxGeometry?._attributes;
   const mainStoryX = parseFloat(mainStoryGeometry?.x ?? '0');
   const mainStoryY = parseFloat(mainStoryGeometry?.y ?? '0');
   const mainStoryWidth = parseFloat(mainStoryGeometry?.width ?? '0');
   const mainStoryHeight = parseFloat(mainStoryGeometry?.height ?? '0');
 
+  // Sprawdza, czy komórka znajduje się w obrębie granic komórki głównej historii
   return (
     cellX >= mainStoryX &&
     cellX <= mainStoryX + mainStoryWidth &&
