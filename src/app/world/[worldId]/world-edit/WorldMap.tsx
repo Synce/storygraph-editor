@@ -158,14 +158,18 @@ const WorldMap = ({
         if (change.type === 'remove') {
           const edge = edges.find(edge => edge.id === change.id);
           if (!edge) return;
-          removeConnection.mutate({
-            sourceId: edge.source,
-            targetId: edge.target,
-          });
+          void removeConnection
+            .mutateAsync({
+              sourceId: edge.source,
+              targetId: edge.target,
+            })
+            .then(() => {
+              setEdges(eds => applyEdgeChanges(changes, eds));
+            });
+        } else {
+          setEdges(eds => applyEdgeChanges(changes, eds));
         }
       });
-
-      setEdges(eds => applyEdgeChanges(changes, eds));
     },
     [edges, removeConnection],
   );

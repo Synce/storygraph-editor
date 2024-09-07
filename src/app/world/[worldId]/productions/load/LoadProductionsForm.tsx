@@ -18,6 +18,7 @@ const LoadProductionsForm = ({worldId}: LoadProductionsFormProps) => {
   const {toast} = useToast();
 
   const router = useRouter();
+  const utils = api.useUtils();
 
   const loadProductions = api.productions.loadProductions.useMutation({
     onError: err => {
@@ -27,6 +28,7 @@ const LoadProductionsForm = ({worldId}: LoadProductionsFormProps) => {
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
       router.push(`/world/${worldId}/productions`);
     },
   });

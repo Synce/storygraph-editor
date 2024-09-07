@@ -39,6 +39,7 @@ const CreateQuestForm = ({worldId}: CreateQuestFormProps) => {
   } = methods;
 
   const questNameValue = watch('questName');
+  const utils = api.useUtils();
 
   const createQuest = api.quests.createQuest.useMutation({
     onError: err => {
@@ -48,6 +49,8 @@ const CreateQuestForm = ({worldId}: CreateQuestFormProps) => {
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
+
       router.push(`/world/${worldId}/quests`);
       toast({
         title: 'Sukces',

@@ -36,6 +36,7 @@ const EditNodeForm = ({node}: EditNodeFormProps) => {
       Attributes: parseAttributesSchema(node.Attributes),
     },
   });
+  const utils = api.useUtils();
 
   const {
     handleSubmit,
@@ -52,6 +53,7 @@ const EditNodeForm = ({node}: EditNodeFormProps) => {
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
       router.refresh();
       toast({
         title: 'Sukces',

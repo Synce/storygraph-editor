@@ -35,6 +35,7 @@ const NodeForm = ({
   const router = useRouter();
 
   const creatingNew = !node;
+  const utils = api.useUtils();
 
   const methods = useForm<NodeEditSchema>({
     mode: 'onSubmit',
@@ -186,6 +187,7 @@ const NodeForm = ({
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
       router.push(`/world/${worldId}/quests/${questId}`);
       toast({
         title: 'Sukces',
@@ -202,6 +204,7 @@ const NodeForm = ({
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
       router.refresh();
       toast({
         title: 'Sukces',

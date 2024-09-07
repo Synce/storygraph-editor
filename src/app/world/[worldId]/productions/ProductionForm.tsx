@@ -65,6 +65,8 @@ const ProductionForm = ({
 
   const {toast} = useToast();
   const router = useRouter();
+  const utils = api.useUtils();
+
   const createProduction = api.productions.createProduction.useMutation({
     onError: err => {
       toast({
@@ -73,6 +75,7 @@ const ProductionForm = ({
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
       router.push(`/world/${worldId}/productions`);
       toast({
         title: 'Sukces',
@@ -89,6 +92,7 @@ const ProductionForm = ({
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
       router.refresh();
       toast({
         title: 'Sukces',

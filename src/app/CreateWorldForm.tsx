@@ -13,6 +13,7 @@ const CreateWorldForm = () => {
   const {toast} = useToast();
 
   const router = useRouter();
+  const utils = api.useUtils();
 
   const loadWorld = api.worldLoader.loadWorld.useMutation({
     onError: err => {
@@ -22,6 +23,7 @@ const CreateWorldForm = () => {
       });
     },
     onSuccess: world => {
+      void utils.invalidate();
       router.push(`/world/${world.Id}/world-edit`);
     },
   });
@@ -34,6 +36,7 @@ const CreateWorldForm = () => {
       });
     },
     onSuccess: world => {
+      void utils.invalidate();
       router.push(`/world/${world.Id}/world-edit`);
     },
   });

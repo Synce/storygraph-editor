@@ -17,6 +17,8 @@ type CharactersListProps = {
 const SubContentList = ({content, ...config}: CharactersListProps) => {
   const {toast} = useToast();
   const router = useRouter();
+  const utils = api.useUtils();
+
   const removeNode = api.world.removeNode.useMutation({
     onError: err => {
       toast({
@@ -26,6 +28,7 @@ const SubContentList = ({content, ...config}: CharactersListProps) => {
     },
     onSuccess: () => {
       router.refresh();
+      void utils.invalidate();
       toast({
         title: 'Sukces',
         description: 'zapisano',
@@ -41,6 +44,7 @@ const SubContentList = ({content, ...config}: CharactersListProps) => {
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
       router.refresh();
       toast({
         title: 'Sukces',

@@ -28,6 +28,7 @@ const WorldBreadCrumbs = ({
     else
       router.push(`/world/${node.worldId}/world-edit/${node.WorldContent.Id}`);
   };
+  const utils = api.useUtils();
 
   const removeNode = api.world.removeNode.useMutation({
     onError: err => {
@@ -37,6 +38,7 @@ const WorldBreadCrumbs = ({
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
       navigateToNode(path[path.length - 1]!);
       toast({
         title: 'Sukces',

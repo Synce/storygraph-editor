@@ -150,10 +150,21 @@ export const worldRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ctx, input}) => {
-      return ctx.db.connection.deleteMany({
+      const connection = await ctx.db.connection.findFirst({
         where: {
           Destination: input.targetId,
           worldContentId: input.sourceId,
+        },
+      });
+
+      if (!connection)
+        throw new Error(
+          'Połączenie nie jest pomiędzy lokacjami lub takie połączenie nie istnieje',
+        );
+
+      return ctx.db.connection.delete({
+        where: {
+          Id: connection.Id,
         },
       });
     }),

@@ -18,6 +18,7 @@ const LoadQuestsForm = ({worldId}: LoadQuestsFormProps) => {
   const {toast} = useToast();
 
   const router = useRouter();
+  const utils = api.useUtils();
 
   const loadQuest = api.quests.loadQuestFile.useMutation({
     onError: err => {
@@ -27,6 +28,7 @@ const LoadQuestsForm = ({worldId}: LoadQuestsFormProps) => {
       });
     },
     onSuccess: () => {
+      void utils.invalidate();
       router.push(`/world/${worldId}/quests`);
     },
   });
