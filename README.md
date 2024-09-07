@@ -10,7 +10,7 @@ Zainstalowane:
 - node.js
 - yarn
 ## Instalacja i uruchomienie:
-1. Pobranie tego repozytorium
+1. Pobrać to repozytorium
 2. Skopiować plik `.env.example`, zmienić nazwę na `.env`, w `DATABASE_URL` ustawić odpowiednie hasło (specjalnie napisane z dużej litery żeby było wiadomo gdzie zmienić) dla użytkownika postgres
 3. `yarn install --frozen-lockfile`
 4. `yarn db:push`
